@@ -1,4 +1,4 @@
-package com.scalo.stocklify.ui.theme
+package com.scalo.stocklify.core.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
@@ -28,9 +28,7 @@ data class StocklifyColors(
     val warning: Color,
     val transparentGray500: Color,
     val transparentGray100: Color,
-    val transparentPrimary600: Color,
-    val white: Color,
-    val black: Color,
+    val transparentPrimary600: Color
 )
 
 val LightStocklifyColors = StocklifyColors(
@@ -59,9 +57,7 @@ val LightStocklifyColors = StocklifyColors(
     warning = Color(0xFFEC7113),
     transparentGray500 = Color(0xFF7983A1).copy(alpha = 0.06f),
     transparentGray100 = Color(0xFFECEFF8).copy(alpha = 0.92f),
-    transparentPrimary600 = Color(0xFF2545A7).copy(alpha = 0.24f),
-    white = Color(0xFFFFFFFF),
-    black = Color(0xFF000000),
+    transparentPrimary600 = Color(0xFF2545A7).copy(alpha = 0.24f)
 )
 
 val DarkStocklifyColors = StocklifyColors(
@@ -90,7 +86,10 @@ val DarkStocklifyColors = StocklifyColors(
     warning = Color(0xFFF19343),
     transparentGray500 = Color(0xFFC2C9DD).copy(alpha = 0.06f),
     transparentGray100 = Color(0xFF42495C).copy(alpha = 0.92f),
-    transparentPrimary600 = Color(0xFFD5DDF6).copy(alpha = 0.24f),
-    white = Color(0xFFFFFFFF),
-    black = Color(0xFF000000),
+    transparentPrimary600 = Color(0xFFD5DDF6).copy(alpha = 0.24f)
 )
+
+object StocklifyStaticColors {
+    val white = Color(0xFFFFFFFF)
+    val black = Color(0xFF000000)
+}

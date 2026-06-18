@@ -1,4 +1,4 @@
-package com.scalo.stocklify.ui.theme
+package com.scalo.stocklify.core.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -32,6 +32,18 @@ object StocklifyRadius {
     val full: Dp = 999.dp
 }
 
+object StocklifySpacing {
+    val xxs: Dp = 2.dp
+    val xs: Dp = 4.dp
+    val s: Dp = 8.dp
+    val m: Dp = 12.dp
+    val l: Dp = 16.dp
+    val xl: Dp = 24.dp
+    val xxl: Dp = 32.dp
+    val xxxl: Dp = 48.dp
+    val huge: Dp = 64.dp
+}
+
 private val LocalStocklifyColors = staticCompositionLocalOf { LightStocklifyColors }
 
 object StocklifyTheme {
@@ -46,31 +58,34 @@ object StocklifyTheme {
     val radius: StocklifyRadius
         get() = StocklifyRadius
 
+    val spacing: StocklifySpacing        // 👈 added
+        get() = StocklifySpacing
+
     val textStyles: StocklifyTextStyles
         get() = StocklifyTextStyles
 }
 
 private fun stocklifyLightColorScheme(colors: StocklifyColors) = lightColorScheme(
     primary = colors.primary500,
-    onPrimary = colors.white,
+    onPrimary = StocklifyStaticColors.white,
     primaryContainer = colors.primary100,
     onPrimaryContainer = colors.primary700,
     secondary = colors.grayscale500,
-    onSecondary = colors.white,
+    onSecondary = StocklifyStaticColors.white,
     secondaryContainer = colors.grayscale100,
     onSecondaryContainer = colors.grayscale700,
     tertiary = colors.primary300,
     onTertiary = colors.primary700,
-    background = colors.white,
+    background = StocklifyStaticColors.white,
     onBackground = colors.typography500,
-    surface = colors.white,
+    surface = StocklifyStaticColors.white,
     onSurface = colors.typography500,
     surfaceVariant = colors.grayscale100,
     onSurfaceVariant = colors.typography300,
     outline = colors.grayscale300,
     outlineVariant = colors.grayscale200,
     error = colors.error,
-    onError = colors.white,
+    onError = StocklifyStaticColors.white,
 )
 
 private fun stocklifyDarkColorScheme(colors: StocklifyColors) = darkColorScheme(
@@ -93,7 +108,7 @@ private fun stocklifyDarkColorScheme(colors: StocklifyColors) = darkColorScheme(
     outline = colors.grayscale400,
     outlineVariant = colors.grayscale300,
     error = colors.error,
-    onError = colors.black,
+    onError = StocklifyStaticColors.black,
 )
 
 @Composable
