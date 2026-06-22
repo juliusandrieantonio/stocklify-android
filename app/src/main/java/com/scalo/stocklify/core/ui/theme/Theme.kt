@@ -42,6 +42,19 @@ object StocklifySpacing {
     val xxl: Dp = 32.dp
     val xxxl: Dp = 48.dp
     val huge: Dp = 64.dp
+
+    val screenPadding: Dp = 24.dp
+    val columnGap: Dp = 12.dp
+    val columnGapM: Dp = 24.dp
+    val columnGapL: Dp = 36.dp
+
+}
+
+object StocklifySize {
+    val small: Dp = 24.dp
+    val medium: Dp = 48.dp
+    val large: Dp = 64.dp
+    val xlarge: Dp = 128.dp
 }
 
 private val LocalStocklifyColors = staticCompositionLocalOf { LightStocklifyColors }

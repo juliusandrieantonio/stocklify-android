@@ -4,6 +4,7 @@ import com.scalo.stocklify.R
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.scalo.stocklify.feature.onboarding.domain.usecase.CompleteOnboardingUseCase
+import com.scalo.stocklify.feature.onboarding.model.OnBoardingPage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

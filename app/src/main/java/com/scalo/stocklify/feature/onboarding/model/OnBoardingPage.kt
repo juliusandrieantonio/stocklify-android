@@ -1,4 +1,4 @@
-package com.scalo.stocklify.feature.onboarding.ui
+package com.scalo.stocklify.feature.onboarding.model
 
 data class OnBoardingPage (
     val title: String,

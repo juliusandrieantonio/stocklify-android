@@ -1,6 +1,5 @@
 package com.scalo.stocklify.feature.onboarding.ui
 
-import android.widget.Space
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -20,12 +19,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -35,6 +34,7 @@ import com.scalo.stocklify.core.ui.theme.StocklifySpacing
 import com.scalo.stocklify.core.ui.theme.StocklifyStaticColors
 import com.scalo.stocklify.core.ui.theme.StocklifyTextStyles
 import com.scalo.stocklify.core.ui.theme.StocklifyTheme
+import com.scalo.stocklify.feature.onboarding.model.OnBoardingPage
 import kotlinx.coroutines.launch
 
 @Composable
@@ -62,9 +62,9 @@ fun OnboardingScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(StocklifySpacing.xl),
+            .padding(StocklifySpacing.screenPadding),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(StocklifySpacing.m, alignment = Alignment.CenterVertically)
+        verticalArrangement = Arrangement.spacedBy(StocklifySpacing.columnGap, alignment = Alignment.CenterVertically)
     ) {
 
         HorizontalPager(
@@ -123,7 +123,8 @@ fun OnboardingPageContent(page: OnBoardingPage) {
         Text(
             text = page.title,
             color = StocklifyTheme.colors.primary700,
-            style = StocklifyTextStyles.heading3
+            style = StocklifyTextStyles.heading3,
+            textAlign = TextAlign.Center
         )
         Text(
             text = page.subTitle,
