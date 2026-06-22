@@ -28,6 +28,7 @@ android {
     }
 
     buildFeatures {
+        buildConfig = true
         compose = true
     }
 }
@@ -41,6 +42,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.material)
 
     // Kotlin
     implementation(libs.androidx.core.ktx)
@@ -74,6 +76,11 @@ dependencies {
     // Preferences
     implementation(libs.datastore.preferences)
 
-    implementation(libs.material)
+    // Room
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
+    implementation(libs.sqlcipher)
+    implementation(libs.sqlite)
 
 }

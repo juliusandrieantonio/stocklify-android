@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.scalo.stocklify.core.util.Screen
 import com.scalo.stocklify.feature.onboarding.domain.repository.OnboardingRepository
+import com.scalo.stocklify.feature.stores.domain.repository.StoreRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,7 +13,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val onboardingRepo: OnboardingRepository
+    private val onboardingRepo: OnboardingRepository,
+    private val storeRepo: StoreRepository
 ) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(true)
@@ -23,9 +25,24 @@ class MainViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
+            _isLoading.value = true
+
+            val hasCompletedOnboarding =
+                onboardingRepo.hasCompletedOnboarding()
+
+            val hasStoreCached =
+                onboardingRepo.hasStoreCached()
+
             _startDestination.value = when {
-                !onboardingRepo.hasCompletedOnboarding() -> Screen.Onboarding.route
-                else -> Screen.Home.route
+
+                !hasCompletedOnboarding ->
+                    Screen.Onboarding.route
+
+                !hasStoreCached ->
+                    Screen.CreateJoinStore.route
+
+                else ->
+                    Screen.Home.route
             }
             _isLoading.value = false
         }

@@ -1,4 +1,4 @@
-package com.scalo.stocklify.core.util
+package com.scalo.stocklify.core.util.constants
 
 object Constants {
 
@@ -6,11 +6,6 @@ object Constants {
     const val BASE_URL = "https://api.stocklify.com/"
     const val CONNECT_TIMEOUT = 30L
     const val READ_TIMEOUT = 30L
-
-    // DataStore / SharedPreferences keys
-    const val PREFS_NAME = "stocklify_prefs"
-    const val KEY_AUTH_TOKEN = "auth_token"
-    const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
 
     // Pagination
     const val PAGE_SIZE = 20

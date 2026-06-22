@@ -7,6 +7,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.scalo.stocklify.core.ui.theme.StocklifyTheme
 import com.scalo.stocklify.core.util.Screen
+import com.scalo.stocklify.feature.home.ui.HomeScreen
 import com.scalo.stocklify.feature.onboarding.ui.OnboardingScreen
 import com.scalo.stocklify.feature.stores.ui.CreateJoinStoreScreen
 import com.scalo.stocklify.feature.stores.ui.CreateStoreScreen
@@ -33,14 +34,7 @@ fun AppNavHost(
         }
 
         composable(Screen.Home.route) {
-            CreateJoinStoreScreen(
-                onCreateStore = {
-                    navController.navigate(Screen.CreateStore.route)
-                },
-                onJoinStore = {
-                    navController.navigate(Screen.JoinStore.route)
-                }
-            )
+            HomeScreen()
         }
 
         composable(Screen.CreateJoinStore.route) {

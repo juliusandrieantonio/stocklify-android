@@ -6,6 +6,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -14,6 +17,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.scalo.stocklify.R
 import com.scalo.stocklify.core.ui.components.buttons.StocklifyPrimaryButton
 import com.scalo.stocklify.core.ui.components.texts.DrawableText
@@ -26,10 +30,22 @@ import com.scalo.stocklify.core.util.Screen
 @Composable
 fun CreateStoreScreen(
     onBack: () -> Unit,
-    onCreated: () -> Unit
+    onCreated: () -> Unit,
+    viewModel: StoreViewModel = hiltViewModel()
 ) {
-
+    val state by viewModel.state.collectAsState()
     val shape = RoundedCornerShape(StocklifyRadius.s)
+
+    LaunchedEffect(Unit) {
+        viewModel.event.collect { event ->
+            when (event) {
+                StoreEvent.StoreCreated -> onCreated()
+                is StoreEvent.ShowError -> {
+                    // TODO: SHOW ERROR MESSAGE
+                }
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -70,7 +86,9 @@ fun CreateStoreScreen(
             StocklifyPrimaryButton(
                 fullWidth = true,
                 text = "Create Store",
-                onClick = onCreated
+                onClick = {
+                    viewModel.createStore()
+                }
             )
 
             Spacer(Modifier.height(StocklifySpacing.s))

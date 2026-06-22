@@ -1,6 +1,6 @@
 package com.scalo.stocklify.di
 
-import com.scalo.stocklify.core.util.Constants
+import com.scalo.stocklify.core.util.constants.Constants
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
