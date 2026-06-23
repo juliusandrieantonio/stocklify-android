@@ -2,6 +2,7 @@ package com.scalo.stocklify.core.data.database.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.scalo.stocklify.core.model.enums.RecordStatus
@@ -9,7 +10,17 @@ import com.scalo.stocklify.core.model.enums.RecordStatus
 @Entity(
     tableName = "stores",
     indices = [
-        Index(value = ["store_code"], unique = true)
+        Index(value = ["store_code"], unique = true),
+        Index(value = ["store_type_id"])
+    ],
+    foreignKeys = [
+        ForeignKey(
+            entity = StoreTypeEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["store_type_id"],
+            onDelete = ForeignKey.RESTRICT,
+            onUpdate = ForeignKey.CASCADE
+        )
     ]
 )
 data class StoreEntity(

@@ -16,7 +16,6 @@ import com.scalo.stocklify.core.ui.components.texts.StocklifyTextField
 import com.scalo.stocklify.core.ui.components.topbar.StocklifyTopBar
 import com.scalo.stocklify.core.ui.theme.*
 import com.scalo.stocklify.core.util.IconPosition
-import com.scalo.stocklify.core.util.Screen
 
 @Composable
 fun JoinStoreScreen(
@@ -57,11 +56,11 @@ fun JoinStoreScreen(
 
             DescriptionText()
 
-            Spacer(modifier = Modifier.height(StocklifySize.small))
+            Spacer(modifier = Modifier.height(StocklifySize.smallest))
 
             InvitationField()
 
-            Spacer(modifier = Modifier.height(StocklifySize.small))
+            Spacer(modifier = Modifier.height(StocklifySize.smallest))
 
             JoinButton(onJoined)
 

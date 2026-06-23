@@ -38,7 +38,7 @@ fun StocklifyTextField(
     ) {
 
         label?.let {
-            Row() {
+            Row {
                 Text(
                     text = it,
                     style = StocklifyTheme.textStyles.subtitleXs,
@@ -82,6 +82,7 @@ fun StocklifyTextField(
             enabled = enabled,
             isError = isError,
             shape = RoundedCornerShape(StocklifyRadius.s),
+            textStyle = StocklifyTheme.textStyles.bodyM
         )
 
         supportingText?.let {
@@ -89,7 +90,8 @@ fun StocklifyTextField(
 
             Text(
                 text = it,
-                style = StocklifyTheme.textStyles.subtitleXs
+                style = StocklifyTheme.textStyles.subtitleXs,
+                color = if (isError) StocklifyTheme.colors.error else StocklifyTheme.colors.typography400
             )
         }
     }

@@ -20,12 +20,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.scalo.stocklify.R
 import com.scalo.stocklify.core.ui.components.buttons.StocklifyPrimaryButton
+import com.scalo.stocklify.core.ui.components.texts.StocklifyDropdownField
 import com.scalo.stocklify.core.ui.components.texts.DrawableText
 import com.scalo.stocklify.core.ui.components.texts.StocklifyTextField
+import com.scalo.stocklify.core.model.models.StoreType
 import com.scalo.stocklify.core.ui.components.topbar.StocklifyTopBar
 import com.scalo.stocklify.core.ui.theme.*
 import com.scalo.stocklify.core.util.IconPosition
-import com.scalo.stocklify.core.util.Screen
 
 @Composable
 fun CreateStoreScreen(
@@ -73,25 +74,36 @@ fun CreateStoreScreen(
 
             HeaderSection()
 
-            Spacer(modifier = Modifier.height(StocklifySize.small))
+            Spacer(modifier = Modifier.height(StocklifySize.smallest))
 
-            StoreFormSection()
+            StoreFormSection(
+                storeName = state.storeName,
+                storeNameError = state.storeNameError,
+                storeTypes = state.storeTypes,
+                selectedStoreType = state.selectedStoreType,
+                onStoreNameChanged = {
+                    viewModel.onAction(StoreAction.StoreNameChanged(it))
+                },
+                onStoreTypeChanged = {
+                    viewModel.onAction(StoreAction.StoreTypeChanged(it))
+                }
+            )
 
-            Spacer(modifier = Modifier.height(StocklifySize.small))
+            Spacer(modifier = Modifier.height(StocklifySize.smallest))
 
             PremiumInfoCard(shape)
 
-            Spacer(modifier = Modifier.height(StocklifySize.medium))
+            Spacer(modifier = Modifier.height(StocklifySize.large))
 
             StocklifyPrimaryButton(
                 fullWidth = true,
                 text = "Create Store",
                 onClick = {
-                    viewModel.createStore()
+                    viewModel.onAction(StoreAction.CreateStore)
                 }
             )
 
-            Spacer(Modifier.height(StocklifySpacing.s))
+            Spacer(Modifier.height(StocklifySpacing.l))
 
             FooterNote()
         }
@@ -117,26 +129,37 @@ private fun HeaderSection() {
 }
 
 @Composable
-private fun StoreFormSection() {
-
+private fun StoreFormSection(
+    storeName: String,
+    storeNameError: String?,
+    storeTypes: List<StoreType>,
+    selectedStoreType: StoreType?,
+    onStoreNameChanged: (String) -> Unit,
+    onStoreTypeChanged: (StoreType) -> Unit
+) {
     Column(
         verticalArrangement = Arrangement.spacedBy(StocklifySpacing.columnGap)
     ) {
 
         StocklifyTextField(
-            value = "",
-            onValueChange = {},
+            value = storeName,
+            onValueChange = onStoreNameChanged,
             label = "Store Name",
-            placeholder = "Enter your store name"
+            placeholder = "Enter your store name",
+            isError = storeNameError != null,
+            supportingText = storeNameError
         )
 
-        Spacer(modifier = Modifier.height(StocklifySize.small))
+        Spacer(modifier = Modifier.height(StocklifySpacing.columnGap))
 
-        StocklifyTextField(
-            value = "",
-            onValueChange = {},
+        StocklifyDropdownField(
+            value = selectedStoreType?.name ?: "",
+            options = storeTypes.map { it.name },
+            onValueSelected = { name ->
+                storeTypes.find { it.name == name }?.let(onStoreTypeChanged)
+            },
             label = "Store Type",
-            placeholder = "Enter your store type",
+            placeholder = "Select a store type",
             optional = true
         )
     }
@@ -176,7 +199,7 @@ private fun PremiumInfoCard(shape: RoundedCornerShape) {
             painter = painterResource(R.drawable.filled_crown),
             iconPosition = IconPosition.Start,
             iconTint = Color(0xFFECB913),
-            iconSize = StocklifySize.small,
+            iconSize = StocklifySize.smallest,
             textStyle = StocklifyTextStyles.subtitleXs,
             spacing = StocklifySpacing.l
         )

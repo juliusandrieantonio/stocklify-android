@@ -4,7 +4,15 @@ import android.content.Context
 import androidx.room.Room
 import com.scalo.stocklify.core.config.DatabaseConfig
 import com.scalo.stocklify.core.data.database.AppDatabase
+import com.scalo.stocklify.core.data.database.callback.DatabaseCallback
+import com.scalo.stocklify.core.data.database.dao.CategoryDao
+import com.scalo.stocklify.core.data.database.dao.ProductDao
 import com.scalo.stocklify.core.data.database.dao.StoreDao
+import com.scalo.stocklify.core.data.database.dao.StoreProductMappingDao
+import com.scalo.stocklify.core.data.database.dao.StoreTypeDao
+import com.scalo.stocklify.core.data.database.dao.SupplierDao
+import com.scalo.stocklify.core.data.database.migration.MIGRATION_1_2
+import com.scalo.stocklify.core.data.database.migration.MIGRATION_2_3
 import com.scalo.stocklify.core.data.database.util.DatabaseKeyManager
 import dagger.Module
 import dagger.Provides
@@ -39,6 +47,8 @@ object DatabaseModule {
             DatabaseConfig.databaseName()
         )
             .openHelperFactory(factory)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+            .addCallback(DatabaseCallback())
             .build()
     }
 
@@ -47,5 +57,40 @@ object DatabaseModule {
         database: AppDatabase
     ): StoreDao {
         return database.storeDao()
+    }
+
+    @Provides
+    fun provideStoreTypeDao(
+        database: AppDatabase
+    ): StoreTypeDao {
+        return database.storeTypeDao()
+    }
+
+    @Provides
+    fun provideCategoryDao(
+        database: AppDatabase
+    ): CategoryDao {
+        return database.categoryDao()
+    }
+
+    @Provides
+    fun provideSupplierDao(
+        database: AppDatabase
+    ): SupplierDao {
+        return database.supplierDao()
+    }
+
+    @Provides
+    fun provideProductDao(
+        database: AppDatabase
+    ): ProductDao {
+        return database.productDao()
+    }
+
+    @Provides
+    fun provideStoreProductMappingDao(
+        database: AppDatabase
+    ): StoreProductMappingDao {
+        return database.storeProductMappingDao()
     }
 }

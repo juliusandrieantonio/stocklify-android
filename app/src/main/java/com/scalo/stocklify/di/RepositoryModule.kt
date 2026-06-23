@@ -3,7 +3,9 @@ package com.scalo.stocklify.di
 import com.scalo.stocklify.feature.onboarding.data.repository.OnboardingRepositoryImpl
 import com.scalo.stocklify.feature.onboarding.domain.repository.OnboardingRepository
 import com.scalo.stocklify.feature.stores.data.repository.StoreRepositoryImpl
+import com.scalo.stocklify.feature.stores.data.repository.StoreTypeRepositoryImpl
 import com.scalo.stocklify.feature.stores.domain.repository.StoreRepository
+import com.scalo.stocklify.feature.stores.domain.repository.StoreTypeRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -28,6 +30,11 @@ abstract class RepositoryModule {
         abstract fun bindStoreRepository(
             impl: StoreRepositoryImpl
         ): StoreRepository
+
+        @Binds
+        abstract fun bindStoreTypeRepository(
+            impl: StoreTypeRepositoryImpl
+        ): StoreTypeRepository
     }
 
 }

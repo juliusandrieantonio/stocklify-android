@@ -1,0 +1,159 @@
+package com.scalo.stocklify.core.data.database.migration
+
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
+
+internal val STORE_TYPE_SEED_SQL = listOf(
+    "INSERT INTO `store_types` (`code`, `name`, `updated_at`, `updated_by`, `created_at`, `created_by`, `status`, `version`) VALUES ('SARI_SARI', 'Sari-Sari Store', NULL, NULL, 0, 'SYSTEM', 1, 1)",
+    "INSERT INTO `store_types` (`code`, `name`, `updated_at`, `updated_by`, `created_at`, `created_by`, `status`, `version`) VALUES ('RETAIL', 'Retail', NULL, NULL, 0, 'SYSTEM', 1, 1)",
+    "INSERT INTO `store_types` (`code`, `name`, `updated_at`, `updated_by`, `created_at`, `created_by`, `status`, `version`) VALUES ('FOOD_BEVERAGE', 'Food & Beverage', NULL, NULL, 0, 'SYSTEM', 1, 1)",
+    "INSERT INTO `store_types` (`code`, `name`, `updated_at`, `updated_by`, `created_at`, `created_by`, `status`, `version`) VALUES ('HEALTH_BEAUTY', 'Health & Beauty', NULL, NULL, 0, 'SYSTEM', 1, 1)",
+    "INSERT INTO `store_types` (`code`, `name`, `updated_at`, `updated_by`, `created_at`, `created_by`, `status`, `version`) VALUES ('HARDWARE', 'Hardware', NULL, NULL, 0, 'SYSTEM', 1, 1)",
+    "INSERT INTO `store_types` (`code`, `name`, `updated_at`, `updated_by`, `created_at`, `created_by`, `status`, `version`) VALUES ('ELECTRONICS', 'Electronics', NULL, NULL, 0, 'SYSTEM', 1, 1)",
+    "INSERT INTO `store_types` (`code`, `name`, `updated_at`, `updated_by`, `created_at`, `created_by`, `status`, `version`) VALUES ('OTHER', 'Other', NULL, NULL, 0, 'SYSTEM', 1, 1)"
+)
+
+val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("""
+            CREATE TABLE IF NOT EXISTS `categories` (
+                `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                `store_id` INTEGER NOT NULL,
+                `name` TEXT NOT NULL,
+                `description` TEXT,
+                `updated_at` INTEGER,
+                `updated_by` TEXT,
+                `created_at` INTEGER NOT NULL,
+                `created_by` TEXT NOT NULL,
+                `status` INTEGER NOT NULL,
+                `version` INTEGER NOT NULL,
+                FOREIGN KEY(`store_id`) REFERENCES `stores`(`id`) ON UPDATE CASCADE ON DELETE RESTRICT
+            )
+        """.trimIndent())
+
+        db.execSQL("""
+            CREATE INDEX IF NOT EXISTS `index_categories_store_id`
+            ON `categories` (`store_id`)
+        """.trimIndent())
+
+        db.execSQL("""
+            CREATE TABLE IF NOT EXISTS `suppliers` (
+                `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                `store_id` INTEGER NOT NULL,
+                `name` TEXT NOT NULL,
+                `contact_person` TEXT,
+                `phone` TEXT,
+                `updated_at` INTEGER,
+                `updated_by` TEXT,
+                `created_at` INTEGER NOT NULL,
+                `created_by` TEXT NOT NULL,
+                `status` INTEGER NOT NULL,
+                `version` INTEGER NOT NULL,
+                FOREIGN KEY(`store_id`) REFERENCES `stores`(`id`) ON UPDATE CASCADE ON DELETE RESTRICT
+            )
+        """.trimIndent())
+
+        db.execSQL("""
+            CREATE INDEX IF NOT EXISTS `index_suppliers_store_id`
+            ON `suppliers` (`store_id`)
+        """.trimIndent())
+
+        db.execSQL("""
+            CREATE TABLE IF NOT EXISTS `products` (
+                `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                `code` TEXT NOT NULL,
+                `name` TEXT NOT NULL,
+                `selling_price` REAL NOT NULL,
+                `cost_price` REAL NOT NULL,
+                `image_url` TEXT,
+                `category_id` INTEGER NOT NULL,
+                `updated_at` INTEGER,
+                `updated_by` TEXT,
+                `created_at` INTEGER NOT NULL,
+                `created_by` TEXT NOT NULL,
+                `status` INTEGER NOT NULL,
+                `version` INTEGER NOT NULL,
+                FOREIGN KEY(`category_id`) REFERENCES `categories`(`id`) ON UPDATE CASCADE ON DELETE RESTRICT
+            )
+        """.trimIndent())
+
+        db.execSQL("""
+            CREATE UNIQUE INDEX IF NOT EXISTS `index_products_code`
+            ON `products` (`code`)
+        """.trimIndent())
+
+        db.execSQL("""
+            CREATE INDEX IF NOT EXISTS `index_products_category_id`
+            ON `products` (`category_id`)
+        """.trimIndent())
+
+        db.execSQL("""
+            CREATE TABLE IF NOT EXISTS `store_product_mapping` (
+                `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                `store_id` INTEGER NOT NULL,
+                `product_id` INTEGER NOT NULL,
+                `quantity` INTEGER NOT NULL,
+                `supplier_id` INTEGER,
+                `updated_at` INTEGER,
+                `updated_by` TEXT,
+                `created_at` INTEGER NOT NULL,
+                `created_by` TEXT NOT NULL,
+                `status` INTEGER NOT NULL,
+                `version` INTEGER NOT NULL,
+                FOREIGN KEY(`store_id`) REFERENCES `stores`(`id`) ON UPDATE CASCADE ON DELETE RESTRICT,
+                FOREIGN KEY(`product_id`) REFERENCES `products`(`id`) ON UPDATE CASCADE ON DELETE RESTRICT,
+                FOREIGN KEY(`supplier_id`) REFERENCES `suppliers`(`id`) ON UPDATE CASCADE ON DELETE SET NULL
+            )
+        """.trimIndent())
+
+        db.execSQL("""
+            CREATE INDEX IF NOT EXISTS `index_store_product_mapping_store_id`
+            ON `store_product_mapping` (`store_id`)
+        """.trimIndent())
+
+        db.execSQL("""
+            CREATE INDEX IF NOT EXISTS `index_store_product_mapping_product_id`
+            ON `store_product_mapping` (`product_id`)
+        """.trimIndent())
+
+        db.execSQL("""
+            CREATE INDEX IF NOT EXISTS `index_store_product_mapping_supplier_id`
+            ON `store_product_mapping` (`supplier_id`)
+        """.trimIndent())
+
+        db.execSQL("""
+            CREATE UNIQUE INDEX IF NOT EXISTS `index_store_product_mapping_store_id_product_id`
+            ON `store_product_mapping` (`store_id`, `product_id`)
+        """.trimIndent())
+    }
+}
+
+val MIGRATION_1_2 = object : Migration(1, 2) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("""
+            CREATE TABLE IF NOT EXISTS `store_types` (
+                `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                `code` TEXT NOT NULL,
+                `name` TEXT NOT NULL,
+                `updated_at` INTEGER,
+                `updated_by` TEXT,
+                `created_at` INTEGER NOT NULL,
+                `created_by` TEXT NOT NULL,
+                `status` INTEGER NOT NULL,
+                `version` INTEGER NOT NULL
+            )
+        """.trimIndent())
+
+        db.execSQL("""
+            CREATE UNIQUE INDEX IF NOT EXISTS `index_store_types_code`
+            ON `store_types` (`code`)
+        """.trimIndent())
+
+        db.execSQL("""
+            CREATE INDEX IF NOT EXISTS `index_stores_store_type_id`
+            ON `stores` (`store_type_id`)
+        """.trimIndent())
+
+        STORE_TYPE_SEED_SQL.forEach { db.execSQL(it) }
+    }
+}

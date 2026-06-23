@@ -68,7 +68,7 @@ internal fun StocklifyButton(
     val contentColor = when (variant) {
         StocklifyButtonVariant.Primary   -> StocklifyStaticColors.white
         StocklifyButtonVariant.Tertiary -> colors.typography100
-        StocklifyButtonVariant.Outline   -> colors.primary500
+        StocklifyButtonVariant.Outline   -> colors.primary600
         StocklifyButtonVariant.Ghost     -> colors.primary500
     }
 
@@ -87,10 +87,10 @@ internal fun StocklifyButton(
     }
 
     val stroke = when (variant) {
-        StocklifyButtonVariant.Primary   -> strokes.m
-        StocklifyButtonVariant.Tertiary -> strokes.m
-        StocklifyButtonVariant.Outline   -> strokes.m
-        StocklifyButtonVariant.Ghost     -> strokes.m
+        StocklifyButtonVariant.Primary   -> strokes.s
+        StocklifyButtonVariant.Tertiary -> strokes.s
+        StocklifyButtonVariant.Outline   -> strokes.s
+        StocklifyButtonVariant.Ghost     -> strokes.s
     }
 
     val shape = RoundedCornerShape(radius.s)
@@ -102,7 +102,7 @@ internal fun StocklifyButton(
             if (variant == StocklifyButtonVariant.Outline) {
                 Modifier.border(
                     width = stroke,
-                    color = if (enabled) StocklifyStaticColors.white else colors.grayscale300,
+                    color = if (enabled) StocklifyTheme.colors.transparentPrimary600 else colors.grayscale300,
                     shape = shape
                 )
             } else Modifier
@@ -124,7 +124,7 @@ internal fun StocklifyButton(
             defaultElevation = if (variant == StocklifyButtonVariant.Primary) 2.dp else 0.dp,
             pressedElevation = 0.dp,
             disabledElevation = 0.dp
-        )
+        ),
     ) {
         if (isLoading) {
             CircularProgressIndicator(

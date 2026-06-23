@@ -51,7 +51,8 @@ object StocklifySpacing {
 }
 
 object StocklifySize {
-    val small: Dp = 24.dp
+    val smallest: Dp = 24.dp
+    val small: Dp = 36.dp
     val medium: Dp = 48.dp
     val large: Dp = 64.dp
     val xlarge: Dp = 128.dp

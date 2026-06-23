@@ -9,9 +9,12 @@ import com.scalo.stocklify.core.ui.theme.StocklifyTheme
 import com.scalo.stocklify.core.util.Screen
 import com.scalo.stocklify.feature.home.ui.HomeScreen
 import com.scalo.stocklify.feature.onboarding.ui.OnboardingScreen
+import com.scalo.stocklify.feature.products.ui.AddProductOptionScreen
+import com.scalo.stocklify.feature.products.ui.ScanProductScreen
 import com.scalo.stocklify.feature.stores.ui.CreateJoinStoreScreen
 import com.scalo.stocklify.feature.stores.ui.CreateStoreScreen
 import com.scalo.stocklify.feature.stores.ui.JoinStoreScreen
+import com.scalo.stocklify.feature.stores.ui.StoreCreatedScreen
 
 @Composable
 fun AppNavHost(
@@ -52,8 +55,52 @@ fun AppNavHost(
             CreateStoreScreen(
                 onBack = { navController.popBackStack() },
                 onCreated = {
-                    navController.navigate(Screen.Home.route) {
+                    navController.navigate(Screen.StoreCreated.route) {
                         popUpTo(Screen.CreateStore.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.StoreCreated.route) {
+            StoreCreatedScreen(
+                onAddProduct = {
+                    navController.navigate(Screen.AddProductOption.route)
+                },
+                onLater = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.StoreCreated.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.AddProductOption.route) {
+            AddProductOptionScreen(
+                onBack = { navController.popBackStack() },
+                onLater = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.AddProductOption.route) { inclusive = true }
+                    }
+                },
+                onScanProductList = {
+                    navController.navigate(Screen.ScanProduct.route)
+                },
+                onAddManually = {
+                    // TODO: navigate to Add Product Manually screen
+                },
+            )
+        }
+
+        composable(Screen.ScanProduct.route) {
+            ScanProductScreen(
+                onBack = { navController.popBackStack() },
+                onAddProduct = {
+                    // TODO: navigate to next step after scan
+                },
+                onLater = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.ScanProduct.route) { inclusive = true }
                     }
                 }
             )
