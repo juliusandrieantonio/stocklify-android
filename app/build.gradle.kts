@@ -16,6 +16,9 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
+        ndk {
+            abiFilters += "arm64-v8a"
+        }
     }
 
     compileOptions {
@@ -30,6 +33,15 @@ android {
     buildFeatures {
         buildConfig = true
         compose = true
+    }
+
+    packaging {
+        jniLibs {
+            pickFirsts += setOf(
+                "lib/arm64-v8a/libc++_shared.so",
+                "lib/armeabi-v7a/libc++_shared.so"
+            )
+        }
     }
 }
 
@@ -75,6 +87,12 @@ dependencies {
 
     // Preferences
     implementation(libs.datastore.preferences)
+
+    // PaddleOCR
+    implementation(libs.paddleocr)
+
+    // OpenCV
+    implementation(libs.opencv)
 
     // Room
     implementation(libs.room.runtime)

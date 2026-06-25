@@ -1,4 +1,4 @@
-package com.scalo.stocklify.feature.products.ui
+package com.scalo.stocklify.feature.products.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
