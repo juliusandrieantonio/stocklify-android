@@ -28,7 +28,7 @@ data class CategoryEntity(
     val id: Long = 0,
 
     @ColumnInfo(name = "store_id")
-    val storeId: Long,
+    val storeId: Long?,
 
     @ColumnInfo(name = "name")
     val name: String,

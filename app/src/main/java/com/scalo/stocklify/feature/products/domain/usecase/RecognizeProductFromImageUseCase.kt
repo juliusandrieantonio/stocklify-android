@@ -41,7 +41,7 @@ class RecognizeProductFromImageUseCase @Inject constructor(
         isRunCls = true
         isRunRec = true
         cpuPowerMode = CpuPowerMode.LITE_POWER_FULL
-        detLongSize = 1280
+        detLongSize = 2040
         scoreThreshold = 0.3f
         isUseOpencl = true
     }

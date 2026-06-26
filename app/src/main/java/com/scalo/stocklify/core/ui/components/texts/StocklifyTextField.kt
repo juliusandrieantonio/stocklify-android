@@ -31,7 +31,8 @@ fun StocklifyTextField(
     enabled: Boolean = true,
     isError: Boolean = false,
     supportingText: String? = null,
-    optional: Boolean = false
+    optional: Boolean = false,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
 ) {
     Column(
         modifier = modifier.fillMaxWidth()
@@ -81,6 +82,7 @@ fun StocklifyTextField(
             singleLine = singleLine,
             enabled = enabled,
             isError = isError,
+            keyboardOptions = keyboardOptions,
             shape = RoundedCornerShape(StocklifyRadius.s),
             textStyle = StocklifyTheme.textStyles.bodyM
         )

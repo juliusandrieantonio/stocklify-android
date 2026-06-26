@@ -4,13 +4,24 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.scalo.stocklify.core.data.database.dao.CategoryDao
+import com.scalo.stocklify.core.data.database.dao.ProductDao
+import com.scalo.stocklify.core.data.database.dao.StoreDao
+import com.scalo.stocklify.core.data.database.dao.StoreProductMappingDao
+import com.scalo.stocklify.core.data.database.entity.ProductEntity
+import com.scalo.stocklify.core.data.database.entity.StoreProductMappingEntity
+import com.scalo.stocklify.core.data.database.mapper.toDomain
+import com.scalo.stocklify.core.model.enums.RecordStatus
+import com.scalo.stocklify.core.model.models.Category
 import com.scalo.stocklify.feature.products.domain.usecase.RecognizeProductFromImageUseCase
 import com.scalo.stocklify.feature.products.model.ScannedProductResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 sealed class ScanningState {
@@ -20,9 +31,20 @@ sealed class ScanningState {
     data class Error(val message: String) : ScanningState()
 }
 
+sealed class ImportState {
+    object Idle : ImportState()
+    object Loading : ImportState()
+    data class Success(val importedCount: Int) : ImportState()
+    data class Error(val message: String) : ImportState()
+}
+
 @HiltViewModel
 class ScanProductViewModel @Inject constructor(
-    private val recognizeProductFromImage: RecognizeProductFromImageUseCase
+    private val recognizeProductFromImage: RecognizeProductFromImageUseCase,
+    private val productDao: ProductDao,
+    private val categoryDao: CategoryDao,
+    private val storeDao: StoreDao,
+    private val storeProductMappingDao: StoreProductMappingDao,
 ) : ViewModel() {
 
     private val _imageUri = MutableStateFlow<Uri?>(null)
@@ -30,6 +52,33 @@ class ScanProductViewModel @Inject constructor(
 
     private val _scanningState = MutableStateFlow<ScanningState>(ScanningState.Idle)
     val scanningState: StateFlow<ScanningState> = _scanningState.asStateFlow()
+
+    private val _importState = MutableStateFlow<ImportState>(ImportState.Idle)
+    val importState: StateFlow<ImportState> = _importState.asStateFlow()
+
+    private val _categories = MutableStateFlow<List<Category>>(emptyList())
+    val categories: StateFlow<List<Category>> = _categories.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            categoryDao.getAll().collect { entities ->
+                _categories.value = entities.map { it.toDomain() }
+            }
+        }
+    }
+
+    fun updateScannedProduct(index: Int, name: String, price: Double?, category: Category?, stock: Long?, imageUri: Uri?) {
+        val current = scanningState.value as? ScanningState.Success ?: return
+        val updated = current.results.toMutableList()
+        updated[index] = updated[index].copy(
+            productName = name.ifBlank { null },
+            price = price,
+            stock = stock,
+            imageUri = imageUri,
+            matchedCategory = category,
+        )
+        _scanningState.value = ScanningState.Success(updated)
+    }
 
     fun setImageUri(uri: Uri) {
         _imageUri.value = uri
@@ -67,6 +116,60 @@ class ScanProductViewModel @Inject constructor(
             } catch (e: Exception) {
                 Log.e(TAG, "OCR analysis failed", e)
                 _scanningState.value = ScanningState.Error(e.message ?: "Unknown error")
+            }
+        }
+    }
+
+    fun importProducts(selectedIndices: Set<Int>) {
+        val results = (scanningState.value as? ScanningState.Success)?.results ?: return
+        viewModelScope.launch {
+            _importState.value = ImportState.Loading
+            try {
+                val store = storeDao.getAll().first().firstOrNull()
+                    ?: throw IllegalStateException("No store found")
+
+                val valid = selectedIndices
+                    .mapNotNull { results.getOrNull(it) }
+                    .filter { !it.productName.isNullOrBlank() && it.price != null && it.matchedCategory != null }
+
+                valid.forEach { result ->
+                    val productId = productDao.insert(
+                        ProductEntity(
+                            code = UUID.randomUUID().toString(),
+                            name = result.productName!!,
+                            sellingPrice = result.price!!,
+                            costPrice = result.price,
+                            imageUrl = result.imageUri?.toString(),
+                            categoryId = result.matchedCategory!!.id,
+                            createdAt = System.currentTimeMillis(),
+                            createdBy = "",
+                            updatedAt = null,
+                            updatedBy = null,
+                            status = RecordStatus.ACTIVE,
+                            version = 1
+                        )
+                    )
+
+                    storeProductMappingDao.insert(
+                        StoreProductMappingEntity(
+                            storeId = store.id,
+                            productId = productId,
+                            quantity = result.stock ?: 0L,
+                            supplierId = null,
+                            createdAt = System.currentTimeMillis(),
+                            createdBy = "",
+                            updatedAt = null,
+                            updatedBy = null,
+                            status = RecordStatus.ACTIVE,
+                            version = 1
+                        )
+                    )
+                }
+
+                _importState.value = ImportState.Success(valid.size)
+            } catch (e: Exception) {
+                Log.e(TAG, "Import failed", e)
+                _importState.value = ImportState.Error(e.message ?: "Import failed")
             }
         }
     }

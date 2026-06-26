@@ -88,7 +88,7 @@ fun ScanningProductScreen(
 
             Spacer(modifier = Modifier.height(StocklifySize.medium))
 
-            HeroImage()
+            FormsSection()
 
             Spacer(modifier = Modifier.height(StocklifySize.medium))
 
@@ -123,7 +123,7 @@ private fun HeaderSection() {
 }
 
 @Composable
-private fun HeroImage() {
+private fun FormsSection() {
     Image(
         painter = painterResource(R.drawable.scanner_2),
         contentDescription = null,

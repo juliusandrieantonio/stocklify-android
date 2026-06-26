@@ -4,7 +4,7 @@ import com.scalo.stocklify.core.model.enums.RecordStatus
 
 data class Category(
     val id: Long = 0,
-    val storeId: Long,
+    val storeId: Long? = null,
     val name: String,
     val description: String? = null,
 

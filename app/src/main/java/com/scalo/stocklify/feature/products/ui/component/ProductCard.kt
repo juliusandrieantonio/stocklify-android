@@ -1,12 +1,16 @@
 package com.scalo.stocklify.feature.products.ui.component
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
@@ -22,18 +26,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.scalo.stocklify.R
+import com.scalo.stocklify.core.ui.components.texts.DrawableText
 import com.scalo.stocklify.core.ui.theme.StocklifyRadius
+import com.scalo.stocklify.core.ui.theme.StocklifySize
 import com.scalo.stocklify.core.ui.theme.StocklifySpacing
 import com.scalo.stocklify.core.ui.theme.StocklifyStaticColors
 import com.scalo.stocklify.core.ui.theme.StocklifyStroke
 import com.scalo.stocklify.core.ui.theme.StocklifyTextStyles
 import com.scalo.stocklify.core.ui.theme.StocklifyTheme
+import com.scalo.stocklify.core.util.IconPosition
 
 @Composable
 fun ProductCard(
@@ -68,7 +77,7 @@ fun ProductCard(
                 Checkbox(
                     checked = isSelected,
                     onCheckedChange = onSelectionChange,
-                    modifier = Modifier.requiredSize(24.dp),
+                    modifier = Modifier.requiredSize(12.dp),
                     colors = CheckboxDefaults.colors(
                         checkedColor = StocklifyTheme.colors.primary500,
                         uncheckedColor = StocklifyTheme.colors.grayscale300,
@@ -83,7 +92,7 @@ fun ProductCard(
             contentDescription = title ?: "Product",
             modifier = Modifier
                 .align(Alignment.CenterVertically)
-                .size(62.dp)
+                .size(72.dp)
         )
 
         Column(
@@ -91,26 +100,23 @@ fun ProductCard(
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.Top
-            ) {
+            DrawableText(
+                text = buildAnnotatedString {
+                    append(title ?: "Set Product Name")
+                },
+                painter = painterResource(R.drawable.outlined_pen),
+                iconPosition = IconPosition.End,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onEditClick() },
+                textStyle = StocklifyTextStyles.subtitleS,
+                textColor = if (title != null) StocklifyTheme.colors.primary700
+                else StocklifyTheme.colors.error,
+                iconTint = StocklifyTheme.colors.grayscale500,
+                iconSize = StocklifySize.extraSmall,
+            )
 
-                Text(
-                    text = title ?: "Set Title",
-                    modifier = Modifier.weight(1f),
-                    style = StocklifyTextStyles.subtitleS,
-                    color = if (title != null) StocklifyTheme.colors.primary700
-                            else StocklifyTheme.colors.error
-                )
-
-                IconButton(onClick = onEditClick) {
-                    Icon(
-                        painter = painterResource(R.drawable.outlined_pen),
-                        contentDescription = "Edit"
-                    )
-                }
-            }
+            Spacer(modifier = Modifier.height(StocklifySpacing.s))
 
             ProductDetailRow(
                 label = "Price",

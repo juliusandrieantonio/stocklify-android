@@ -13,6 +13,7 @@ import com.scalo.stocklify.core.data.database.dao.StoreTypeDao
 import com.scalo.stocklify.core.data.database.dao.SupplierDao
 import com.scalo.stocklify.core.data.database.migration.MIGRATION_1_2
 import com.scalo.stocklify.core.data.database.migration.MIGRATION_2_3
+import com.scalo.stocklify.core.data.database.migration.MIGRATION_3_4
 import com.scalo.stocklify.core.data.database.util.DatabaseKeyManager
 import dagger.Module
 import dagger.Provides
@@ -47,7 +48,7 @@ object DatabaseModule {
             DatabaseConfig.databaseName()
         )
             .openHelperFactory(factory)
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
             .addCallback(DatabaseCallback())
             .build()
     }

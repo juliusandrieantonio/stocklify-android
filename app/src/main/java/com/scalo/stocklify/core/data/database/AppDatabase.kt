@@ -26,7 +26,7 @@ import com.scalo.stocklify.core.data.database.entity.SupplierEntity
         ProductEntity::class,
         StoreProductMappingEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 @TypeConverters(RecordStatusConverter::class)

@@ -39,31 +39,19 @@ fun DrawableText(
     textStyle: TextStyle = LocalTextStyle.current,
     iconPosition: IconPosition = IconPosition.Start
 ) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        if (iconPosition == IconPosition.Start) {
-            if (iconBackgroundColor != null) {
-                Box(
-                    modifier = Modifier
-                        .background(
-                            color = iconBackgroundColor,
-                            shape = RoundedCornerShape(StocklifyRadius.s)
-                        )
-                        .padding(StocklifySpacing.xs)
-                        .size(iconSize)
-                    ,
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        painter = painter,
-                        contentDescription = contentDescription,
-                        modifier = Modifier.size(iconSize),
-                        tint = iconTint
+
+    @Composable
+    fun DrawableIcon() {
+        if (iconBackgroundColor != null) {
+            Box(
+                modifier = Modifier
+                    .background(
+                        color = iconBackgroundColor,
+                        shape = RoundedCornerShape(StocklifyRadius.s)
                     )
-                }
-            } else {
+                    .padding(StocklifySpacing.xs),
+                contentAlignment = Alignment.Center
+            ) {
                 Icon(
                     painter = painter,
                     contentDescription = contentDescription,
@@ -71,10 +59,31 @@ fun DrawableText(
                     tint = iconTint
                 )
             }
+        } else {
+            Icon(
+                painter = painter,
+                contentDescription = contentDescription,
+                modifier = Modifier.size(iconSize),
+                tint = iconTint
+            )
+        }
+    }
+
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (iconPosition == IconPosition.Start) {
+            DrawableIcon()
             Spacer(Modifier.width(spacing))
         }
 
         Text(
+            modifier = if (iconPosition == IconPosition.End) {
+                Modifier.weight(1f)
+            } else {
+                Modifier
+            },
             text = text,
             style = textStyle,
             color = textColor
@@ -82,32 +91,7 @@ fun DrawableText(
 
         if (iconPosition == IconPosition.End) {
             Spacer(Modifier.width(spacing))
-
-            if (iconBackgroundColor != null) {
-                Box(
-                    modifier = Modifier
-                        .size(iconSize)
-                        .background(
-                            color = iconBackgroundColor,
-                            shape = RoundedCornerShape(StocklifyRadius.m)
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        painter = painter,
-                        contentDescription = contentDescription,
-                        modifier = Modifier.size(iconSize),
-                        tint = iconTint
-                    )
-                }
-            } else {
-                Icon(
-                    painter = painter,
-                    contentDescription = contentDescription,
-                    modifier = Modifier.size(iconSize),
-                    tint = iconTint
-                )
-            }
+            DrawableIcon()
         }
     }
 }
