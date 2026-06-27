@@ -27,4 +27,5 @@ sealed class Screen(val route: String) {
             return "addProductManually?name=$n&price=$p&categoryId=$c&reviewIndex=$r&stock=$s&imageUri=$i"
         }
     }
+    object StoreReadyScreen : Screen("storeReady")
 }

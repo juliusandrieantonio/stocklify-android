@@ -18,18 +18,10 @@ interface CategoryDao : BaseDao<CategoryEntity> {
     @Query("""
         SELECT *
         FROM categories
-        WHERE store_id = :storeId
-        ORDER BY name
-    """)
-    fun getByStoreId(storeId: Long): Flow<List<CategoryEntity>>
-
-    @Query("""
-        SELECT *
-        FROM categories
         ORDER BY name
     """)
     fun getAll(): Flow<List<CategoryEntity>>
 
-    @Query("SELECT COUNT(*) FROM categories WHERE store_id = :storeId")
-    suspend fun getCountByStoreId(storeId: Long): Int
+    @Query("SELECT COUNT(*) FROM categories")
+    suspend fun getCount(): Int
 }

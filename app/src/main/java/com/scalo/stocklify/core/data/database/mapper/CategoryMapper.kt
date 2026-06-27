@@ -6,7 +6,6 @@ import com.scalo.stocklify.core.model.models.Category
 fun CategoryEntity.toDomain(): Category {
     return Category(
         id = id,
-        storeId = storeId,
         name = name,
         description = description,
         createdAt = createdAt,
@@ -21,7 +20,6 @@ fun CategoryEntity.toDomain(): Category {
 fun Category.toEntity(): CategoryEntity {
     return CategoryEntity(
         id = id,
-        storeId = storeId,
         name = name,
         description = description,
         createdAt = createdAt,

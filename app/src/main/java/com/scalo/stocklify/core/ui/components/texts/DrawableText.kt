@@ -79,11 +79,6 @@ fun DrawableText(
         }
 
         Text(
-            modifier = if (iconPosition == IconPosition.End) {
-                Modifier.weight(1f)
-            } else {
-                Modifier
-            },
             text = text,
             style = textStyle,
             color = textColor

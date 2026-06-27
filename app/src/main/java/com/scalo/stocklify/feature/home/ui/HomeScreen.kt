@@ -1,18 +1,193 @@
 package com.scalo.stocklify.feature.home.ui
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.scalo.stocklify.R
+import com.scalo.stocklify.core.ui.borders.topBorder
+import com.scalo.stocklify.core.ui.components.texts.DrawableText
+import com.scalo.stocklify.core.ui.components.topbar.StocklifyTopBar
+import com.scalo.stocklify.core.ui.theme.StocklifySize
+import com.scalo.stocklify.core.ui.theme.StocklifySpacing
+import com.scalo.stocklify.core.ui.theme.StocklifyStroke
+import com.scalo.stocklify.core.ui.theme.StocklifyTextStyles
+import com.scalo.stocklify.core.ui.theme.StocklifyTheme
+import com.scalo.stocklify.core.util.IconPosition
+import com.scalo.stocklify.feature.dashboard.ui.DashboardScreen
+import com.scalo.stocklify.feature.inventory.ui.InventoryScreen
+import com.scalo.stocklify.feature.profile.ui.ProfileScreen
+import com.scalo.stocklify.feature.records.ui.RecordsScreen
+import com.scalo.stocklify.feature.salesmode.ui.SalesModeScreen
 
 @Composable
 fun HomeScreen(
+    onAddManually: () -> Unit,
+    onScanProduct: () -> Unit,
+    viewModel: HomeViewModel = hiltViewModel(),
 ) {
-    Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("HomeScreen")
+    val storeName by viewModel.storeName.collectAsState()
+    val navController = rememberNavController()
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = currentBackStackEntry?.destination?.route
+    val currentItem = BottomNavItem.items.find { it.route == currentRoute } ?: BottomNavItem.SalesMode
+
+    Scaffold(
+        topBar = {
+            StocklifyTopBar(
+                title = currentItem.label,
+                titleColor = StocklifyTheme.colors.primary700,
+                titleStyle = StocklifyTextStyles.heading5,
+                subtitle = {
+                    DrawableText(
+                        text = buildAnnotatedString { append("$storeName Store") },
+                        painter = painterResource(R.drawable.outlined_down_chevron),
+                        iconPosition = IconPosition.End,
+                        textStyle = StocklifyTextStyles.subtitleXs,
+                        textColor = StocklifyTheme.colors.typography400,
+                        iconSize = StocklifySize.extraSmall
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = {}) {
+                        Icon(
+                            painter = painterResource(R.drawable.outlined_menu),
+                            contentDescription = "Menu",
+                            tint = StocklifyTheme.colors.primary700
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = {}) {
+                        Icon(
+                            painter = painterResource(R.drawable.outlined_robot),
+                            contentDescription = "Robot",
+                            tint = StocklifyTheme.colors.primary700
+                        )
+                    }
+                },
+                showBottomBorder = false
+            )
+        },
+        bottomBar = {
+            StocklifyBottomBar(navController, currentRoute)
+        }
+    ) { padding ->
+
+        NavHost(
+            navController = navController,
+            startDestination = BottomNavItem.SalesMode.route,
+            modifier = Modifier.padding(padding).padding(StocklifySpacing.screenPadding)
+        ) {
+
+            composable(BottomNavItem.Dashboard.route) {
+                DashboardScreen()
+            }
+
+            composable(BottomNavItem.Records.route) {
+                RecordsScreen()
+            }
+
+            composable(BottomNavItem.SalesMode.route) {
+                SalesModeScreen(
+                    onAddManually = onAddManually,
+                    onScanProduct = onScanProduct,
+                )
+            }
+
+            composable(BottomNavItem.Inventory.route) {
+                InventoryScreen()
+            }
+
+            composable(BottomNavItem.Profile.route) {
+                ProfileScreen()
+            }
+        }
+    }
+}
+
+@Composable
+fun StocklifyBottomBar(
+    navController: NavHostController,
+    currentRoute: String?
+) {
+    NavigationBar(
+        containerColor = StocklifyTheme.colors.base,
+        modifier = Modifier.topBorder(
+                width = StocklifyStroke.s,
+                color = StocklifyTheme.colors.grayscale300
+            )
+    ){
+        BottomNavItem.items.forEach { item ->
+
+            val selected = currentRoute == item.route
+
+            NavigationBarItem(
+                colors = NavigationBarItemDefaults.colors(
+                    indicatorColor = Color.Transparent
+                ),
+                modifier = Modifier
+                    .topBorder(
+                        width = StocklifyStroke.l,
+                        color = if (selected) {
+                            StocklifyTheme.colors.primary700
+                        } else {
+                            Color.Unspecified
+                        }
+                    ),
+
+                selected = selected,
+                onClick = {
+                    navController.navigate(item.route) {
+                        popUpTo(navController.graph.startDestinationId) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+                icon = {
+                    Icon(
+                        painter = painterResource(
+                            if (selected) item.selectedIcon else item.icon
+                        ),
+                        contentDescription = item.label,
+                        tint = if (selected) {
+                            StocklifyTheme.colors.primary700
+                        } else {
+                            StocklifyTheme.colors.typography100
+                        }
+                    )
+                },
+                label = {
+                    Text(
+                        text = item.label,
+                        style = StocklifyTextStyles.subtitleXxs,
+                        color = if (selected) {
+                            StocklifyTheme.colors.primary700
+                        } else {
+                            StocklifyTheme.colors.typography100
+                        }
+                    )
+                }
+            )
+        }
     }
 }

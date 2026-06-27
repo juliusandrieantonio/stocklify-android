@@ -74,7 +74,7 @@ object StocklifyTheme {
     val radius: StocklifyRadius
         get() = StocklifyRadius
 
-    val spacing: StocklifySpacing        // 👈 added
+    val spacing: StocklifySpacing
         get() = StocklifySpacing
 
     val textStyles: StocklifyTextStyles

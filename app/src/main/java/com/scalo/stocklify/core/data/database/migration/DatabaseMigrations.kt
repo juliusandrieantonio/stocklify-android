@@ -18,7 +18,6 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
         db.execSQL("""
             CREATE TABLE IF NOT EXISTS `categories` (
                 `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                `store_id` INTEGER NOT NULL,
                 `name` TEXT NOT NULL,
                 `description` TEXT,
                 `updated_at` INTEGER,
@@ -29,11 +28,6 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
                 `version` INTEGER NOT NULL,
                 FOREIGN KEY(`store_id`) REFERENCES `stores`(`id`) ON UPDATE CASCADE ON DELETE RESTRICT
             )
-        """.trimIndent())
-
-        db.execSQL("""
-            CREATE INDEX IF NOT EXISTS `index_categories_store_id`
-            ON `categories` (`store_id`)
         """.trimIndent())
 
         db.execSQL("""
@@ -129,16 +123,16 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
 }
 
 internal val CATEGORY_SEED_SQL = listOf(
-    "INSERT INTO `categories` (`store_id`, `name`, `description`, `updated_at`, `updated_by`, `created_at`, `created_by`, `status`, `version`) VALUES (NULL, 'Food & Beverages', NULL, NULL, NULL, 0, 'SYSTEM', 1, 1)",
-    "INSERT INTO `categories` (`store_id`, `name`, `description`, `updated_at`, `updated_by`, `created_at`, `created_by`, `status`, `version`) VALUES (NULL, 'Snacks & Candy', NULL, NULL, NULL, 0, 'SYSTEM', 1, 1)",
-    "INSERT INTO `categories` (`store_id`, `name`, `description`, `updated_at`, `updated_by`, `created_at`, `created_by`, `status`, `version`) VALUES (NULL, 'Personal Care', NULL, NULL, NULL, 0, 'SYSTEM', 1, 1)",
-    "INSERT INTO `categories` (`store_id`, `name`, `description`, `updated_at`, `updated_by`, `created_at`, `created_by`, `status`, `version`) VALUES (NULL, 'Health & Medicine', NULL, NULL, NULL, 0, 'SYSTEM', 1, 1)",
-    "INSERT INTO `categories` (`store_id`, `name`, `description`, `updated_at`, `updated_by`, `created_at`, `created_by`, `status`, `version`) VALUES (NULL, 'Electronics', NULL, NULL, NULL, 0, 'SYSTEM', 1, 1)",
-    "INSERT INTO `categories` (`store_id`, `name`, `description`, `updated_at`, `updated_by`, `created_at`, `created_by`, `status`, `version`) VALUES (NULL, 'Clothing & Accessories', NULL, NULL, NULL, 0, 'SYSTEM', 1, 1)",
-    "INSERT INTO `categories` (`store_id`, `name`, `description`, `updated_at`, `updated_by`, `created_at`, `created_by`, `status`, `version`) VALUES (NULL, 'Hardware & Tools', NULL, NULL, NULL, 0, 'SYSTEM', 1, 1)",
-    "INSERT INTO `categories` (`store_id`, `name`, `description`, `updated_at`, `updated_by`, `created_at`, `created_by`, `status`, `version`) VALUES (NULL, 'Household Items', NULL, NULL, NULL, 0, 'SYSTEM', 1, 1)",
-    "INSERT INTO `categories` (`store_id`, `name`, `description`, `updated_at`, `updated_by`, `created_at`, `created_by`, `status`, `version`) VALUES (NULL, 'Cleaning Supplies', NULL, NULL, NULL, 0, 'SYSTEM', 1, 1)",
-    "INSERT INTO `categories` (`store_id`, `name`, `description`, `updated_at`, `updated_by`, `created_at`, `created_by`, `status`, `version`) VALUES (NULL, 'School & Office Supplies', NULL, NULL, NULL, 0, 'SYSTEM', 1, 1)"
+    "INSERT INTO `categories` (`name`, `description`, `updated_at`, `updated_by`, `created_at`, `created_by`, `status`, `version`) VALUES ('Food & Beverages', NULL, NULL, NULL, 0, 'SYSTEM', 1, 1)",
+    "INSERT INTO `categories` (`name`, `description`, `updated_at`, `updated_by`, `created_at`, `created_by`, `status`, `version`) VALUES ('Snacks & Candy', NULL, NULL, NULL, 0, 'SYSTEM', 1, 1)",
+    "INSERT INTO `categories` (`name`, `description`, `updated_at`, `updated_by`, `created_at`, `created_by`, `status`, `version`) VALUES ('Personal Care', NULL, NULL, NULL, 0, 'SYSTEM', 1, 1)",
+    "INSERT INTO `categories` (`name`, `description`, `updated_at`, `updated_by`, `created_at`, `created_by`, `status`, `version`) VALUES ('Health & Medicine', NULL, NULL, NULL, 0, 'SYSTEM', 1, 1)",
+    "INSERT INTO `categories` (`name`, `description`, `updated_at`, `updated_by`, `created_at`, `created_by`, `status`, `version`) VALUES ('Electronics', NULL, NULL, NULL, 0, 'SYSTEM', 1, 1)",
+    "INSERT INTO `categories` (`name`, `description`, `updated_at`, `updated_by`, `created_at`, `created_by`, `status`, `version`) VALUES ('Clothing & Accessories', NULL, NULL, NULL, 0, 'SYSTEM', 1, 1)",
+    "INSERT INTO `categories` (`name`, `description`, `updated_at`, `updated_by`, `created_at`, `created_by`, `status`, `version`) VALUES ('Hardware & Tools', NULL, NULL, NULL, 0, 'SYSTEM', 1, 1)",
+    "INSERT INTO `categories` (`name`, `description`, `updated_at`, `updated_by`, `created_at`, `created_by`, `status`, `version`) VALUES ('Household Items', NULL, NULL, NULL, 0, 'SYSTEM', 1, 1)",
+    "INSERT INTO `categories` (`name`, `description`, `updated_at`, `updated_by`, `created_at`, `created_by`, `status`, `version`) VALUES ('Cleaning Supplies', NULL, NULL, NULL, 0, 'SYSTEM', 1, 1)",
+    "INSERT INTO `categories` (`name`, `description`, `updated_at`, `updated_by`, `created_at`, `created_by`, `status`, `version`) VALUES ('School & Office Supplies', NULL, NULL, NULL, 0, 'SYSTEM', 1, 1)"
 )
 
 val MIGRATION_3_4 = object : Migration(3, 4) {
@@ -147,7 +141,6 @@ val MIGRATION_3_4 = object : Migration(3, 4) {
         db.execSQL("""
             CREATE TABLE IF NOT EXISTS `categories_new` (
                 `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                `store_id` INTEGER,
                 `name` TEXT NOT NULL,
                 `description` TEXT,
                 `updated_at` INTEGER,
@@ -168,6 +161,40 @@ val MIGRATION_3_4 = object : Migration(3, 4) {
             CREATE INDEX IF NOT EXISTS `index_categories_store_id`
             ON `categories` (`store_id`)
         """.trimIndent())
+
+        CATEGORY_SEED_SQL.forEach { db.execSQL(it) }
+    }
+}
+
+val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // Recreate categories without store_id; previous migration left the table
+        // in a broken state (FK referencing a non-existent store_id column, broken
+        // seed SQL with mismatched value count). Preserve any user-created rows.
+        db.execSQL("""
+            CREATE TABLE IF NOT EXISTS `categories_new` (
+                `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                `name` TEXT NOT NULL,
+                `description` TEXT,
+                `updated_at` INTEGER,
+                `updated_by` TEXT,
+                `created_at` INTEGER NOT NULL,
+                `created_by` TEXT NOT NULL,
+                `status` INTEGER NOT NULL,
+                `version` INTEGER NOT NULL
+            )
+        """.trimIndent())
+
+        db.execSQL("""
+            INSERT INTO `categories_new`
+                (`id`, `name`, `description`, `updated_at`, `updated_by`, `created_at`, `created_by`, `status`, `version`)
+            SELECT `id`, `name`, `description`, `updated_at`, `updated_by`, `created_at`, `created_by`, `status`, `version`
+            FROM `categories`
+            WHERE `name` IS NOT NULL
+        """.trimIndent())
+
+        db.execSQL("DROP TABLE `categories`")
+        db.execSQL("ALTER TABLE `categories_new` RENAME TO `categories`")
 
         CATEGORY_SEED_SQL.forEach { db.execSQL(it) }
     }

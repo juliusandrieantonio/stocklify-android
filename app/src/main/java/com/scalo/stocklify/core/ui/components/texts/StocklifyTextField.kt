@@ -61,7 +61,7 @@ fun StocklifyTextField(
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxWidth()
                 .border(
                     width = StocklifyStroke.s,

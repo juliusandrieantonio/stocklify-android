@@ -24,6 +24,7 @@ import com.scalo.stocklify.feature.products.ui.screens.ScanProductScreen
 import com.scalo.stocklify.feature.products.ui.ScanProductViewModel
 import com.scalo.stocklify.feature.products.ui.screens.ReviewImportedProductScreen
 import com.scalo.stocklify.feature.products.ui.screens.ScanningProductScreen
+import com.scalo.stocklify.feature.products.ui.screens.StoreReadyScreen
 import com.scalo.stocklify.feature.stores.ui.CreateJoinStoreScreen
 import com.scalo.stocklify.feature.stores.ui.CreateStoreScreen
 import com.scalo.stocklify.feature.stores.ui.JoinStoreScreen
@@ -50,7 +51,14 @@ fun AppNavHost(
         }
 
         composable(Screen.Home.route) {
-            HomeScreen()
+            HomeScreen(
+                onAddManually = {
+                    navController.navigate(Screen.AddProductManually.route())
+                },
+                onScanProduct = {
+                    navController.navigate("scan_flow")
+                },
+            )
         }
 
         composable(Screen.CreateJoinStore.route) {
@@ -222,7 +230,11 @@ fun AppNavHost(
         ) {
             AddEditProductScreen(
                 onBack = { navController.popBackStack() },
-                onSave = { navController.popBackStack() },
+                onSave = {
+                    navController.navigate(Screen.StoreReadyScreen.route) {
+                        popUpTo(Screen.AddProductManually.route) { inclusive = true }
+                    }
+                },
                 onReviewEditDone = { index, name, price, categoryId, stock, imageUri ->
                     navController.previousBackStackEntry?.savedStateHandle?.run {
                         set("review_edit_index", index)
@@ -233,6 +245,16 @@ fun AppNavHost(
                         set("review_edit_image_uri", imageUri?.toString())
                     }
                     navController.popBackStack()
+                }
+            )
+        }
+
+        composable(Screen.StoreReadyScreen.route) {
+            StoreReadyScreen(
+                onGoToSalesMode = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.StoreReadyScreen.route) { inclusive = true }
+                    }
                 }
             )
         }

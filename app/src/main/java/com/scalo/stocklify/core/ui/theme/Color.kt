@@ -3,6 +3,7 @@ package com.scalo.stocklify.core.ui.theme
 import androidx.compose.ui.graphics.Color
 
 data class StocklifyColors(
+    val base: Color,
     val primary100: Color,
     val primary200: Color,
     val primary300: Color,
@@ -32,6 +33,7 @@ data class StocklifyColors(
 )
 
 val LightStocklifyColors = StocklifyColors(
+    base = Color(0xFFFFFFFF),
     primary100 = Color(0xFFEAEEFA),
     primary200 = Color(0xFFD5DDF6),
     primary300 = Color(0xFFABBCED),
@@ -61,6 +63,7 @@ val LightStocklifyColors = StocklifyColors(
 )
 
 val DarkStocklifyColors = StocklifyColors(
+    base = Color(0xFF000000),
     primary100 = Color(0xFF1C347D),
     primary200 = Color(0xFF2545A7),
     primary300 = Color(0xFF2E57D1),

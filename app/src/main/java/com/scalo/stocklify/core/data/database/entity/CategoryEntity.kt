@@ -2,33 +2,14 @@ package com.scalo.stocklify.core.data.database.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
-import androidx.room.ForeignKey
-import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.scalo.stocklify.core.model.enums.RecordStatus
 
-@Entity(
-    tableName = "categories",
-    indices = [
-        Index(value = ["store_id"])
-    ],
-    foreignKeys = [
-        ForeignKey(
-            entity = StoreEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["store_id"],
-            onDelete = ForeignKey.RESTRICT,
-            onUpdate = ForeignKey.CASCADE
-        )
-    ]
-)
+@Entity(tableName = "categories")
 data class CategoryEntity(
 
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-
-    @ColumnInfo(name = "store_id")
-    val storeId: Long?,
 
     @ColumnInfo(name = "name")
     val name: String,

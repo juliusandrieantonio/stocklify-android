@@ -104,7 +104,8 @@ private fun ContentSection() {
             iconTint = StocklifyTheme.colors.primary700,
             iconBackgroundColor = StocklifyTheme.colors.primary100,
             spacing = StocklifySpacing.columnGap,
-            textStyle = StocklifyTextStyles.subtitleXs
+            textStyle = StocklifyTextStyles.subtitleXs,
+            textColor = StocklifyTheme.colors.typography500
         )
 
         DrawableText(
@@ -116,7 +117,8 @@ private fun ContentSection() {
             iconTint = StocklifyTheme.colors.primary700,
             iconBackgroundColor = StocklifyTheme.colors.primary100,
             spacing = StocklifySpacing.columnGap,
-            textStyle = StocklifyTextStyles.subtitleXs
+            textStyle = StocklifyTextStyles.subtitleXs,
+            textColor = StocklifyTheme.colors.typography500
         )
 
         DrawableText(
@@ -128,7 +130,8 @@ private fun ContentSection() {
             iconTint = StocklifyTheme.colors.primary700,
             iconBackgroundColor = StocklifyTheme.colors.primary100,
             spacing = StocklifySpacing.columnGap,
-            textStyle = StocklifyTextStyles.subtitleXs
+            textStyle = StocklifyTextStyles.subtitleXs,
+            textColor = StocklifyTheme.colors.typography500
         )
     }
 }

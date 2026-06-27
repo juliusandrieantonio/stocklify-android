@@ -40,7 +40,7 @@ class MainViewModel @Inject constructor(
                     Screen.CreateJoinStore.route
 
                 else ->
-                    Screen.AddProductOption.route
+                    Screen.Home.route
             }
             _isLoading.value = false
         }
