@@ -1,10 +1,12 @@
-package com.scalo.stocklify.feature.salesmode.ui
+package com.scalo.stocklify.feature.salesmode.ui.screens
 
 import android.graphics.BitmapFactory
-import android.net.Uri
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -20,6 +22,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -27,9 +30,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ImageBitmap
@@ -38,6 +45,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -47,6 +56,7 @@ import com.scalo.stocklify.core.model.models.Category
 import com.scalo.stocklify.core.util.categoryIcon
 import com.scalo.stocklify.core.ui.components.EmptyState
 import com.scalo.stocklify.core.ui.components.buttons.StocklifyOutlineButton
+import com.scalo.stocklify.core.ui.components.cards.StocklifyPrimaryCard
 import com.scalo.stocklify.core.ui.components.chips.StocklifyFilterChip
 import com.scalo.stocklify.core.ui.components.texts.StocklifyTextField
 import com.scalo.stocklify.core.ui.theme.StocklifyRadius
@@ -56,11 +66,20 @@ import com.scalo.stocklify.core.ui.theme.StocklifyStaticColors
 import com.scalo.stocklify.core.ui.theme.StocklifyStroke
 import com.scalo.stocklify.core.ui.theme.StocklifyTextStyles
 import com.scalo.stocklify.core.ui.theme.StocklifyTheme
+import androidx.core.net.toUri
+import com.scalo.stocklify.feature.salesmode.ui.CartItem
+import com.scalo.stocklify.feature.salesmode.ui.ProductModel
+import com.scalo.stocklify.feature.salesmode.ui.SalesModeAction
+import com.scalo.stocklify.feature.salesmode.ui.SalesModeFilterSheet
+import com.scalo.stocklify.feature.salesmode.ui.SalesModeProductSheet
+import com.scalo.stocklify.feature.salesmode.ui.SalesModeUiState
+import com.scalo.stocklify.feature.salesmode.ui.SalesModeViewModel
 
 @Composable
 fun SalesModeScreen(
     onAddManually: () -> Unit,
     onScanProduct: () -> Unit,
+    onCurrentSales: () -> Unit = {},
     viewModel: SalesModeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
@@ -69,6 +88,7 @@ fun SalesModeScreen(
         onAction = viewModel::onAction,
         onAddManually = onAddManually,
         onScanProduct = onScanProduct,
+        onCurrentSales = onCurrentSales,
     )
 }
 
@@ -78,24 +98,60 @@ private fun SalesModeContent(
     onAction: (SalesModeAction) -> Unit,
     onAddManually: () -> Unit,
     onScanProduct: () -> Unit,
+    onCurrentSales: () -> Unit,
 ) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(StocklifySpacing.columnGap)
-    ) {
-        SearchField()
 
-        CategoryChips(
+    var showFilterSheet by remember { mutableStateOf(false) }
+
+    if (showFilterSheet) {
+        SalesModeFilterSheet(
+            current = state.filter,
             categories = state.categories,
-            selectedCategoryId = state.selectedCategoryId,
-            onSelect = { onAction(SalesModeAction.SelectCategory(it)) },
+            onApply = { onAction(SalesModeAction.ApplyFilter(it)) },
+            onDismiss = { showFilterSheet = false },
         )
+    }
 
-        Products(
-            products = state.products,
-            onAddManually = onAddManually,
-            onScanProduct = onScanProduct,
-        )
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(StocklifySpacing.columnGap)
+        ) {
+            SearchField(
+                value = state.searchQuery,
+                onValueChange = { onAction(SalesModeAction.Search(it)) },
+                filterCount = state.filter.activeCount,
+                onFilterClick = { showFilterSheet = true },
+            )
+
+            CategoryChips(
+                categories = state.categories,
+                selectedCategoryId = state.filter.categoryId,
+                onSelect = { onAction(SalesModeAction.SelectCategory(it)) },
+            )
+
+            Products(
+                products = state.products,
+                cartItems = state.cartItems,
+                categories = state.categories,
+                onAddManually = onAddManually,
+                onScanProduct = onScanProduct,
+                onAddToCart = { product, qty -> onAction(SalesModeAction.AddToCart(product, qty)) },
+                onRemoveFromCart = { onAction(SalesModeAction.RemoveFromCart(it)) },
+            )
+        }
+
+        if (state.cartItems.isNotEmpty()) {
+            TotalSales(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter),
+                itemCount = state.cartItems.sumOf { it.quantity },
+                total = state.cartTotal,
+                onClick = onCurrentSales,
+            )
+        }
+
     }
 }
 
@@ -166,9 +222,27 @@ private fun CategoryChips(
 @Composable
 private fun Products(
     products: List<ProductModel>,
+    cartItems: List<CartItem>,
+    categories: List<Category>,
     onAddManually: () -> Unit,
     onScanProduct: () -> Unit,
+    onAddToCart: (ProductModel, Int) -> Unit,
+    onRemoveFromCart: (Long) -> Unit,
 ) {
+    var selectedProduct by remember { mutableStateOf<ProductModel?>(null) }
+
+    selectedProduct?.let { product ->
+        val categoryName = categories.find { it.id == product.categoryId }?.name
+        val existingQty = cartItems.find { it.product.id == product.id }?.quantity ?: 1
+        SalesModeProductSheet(
+            product = product,
+            categoryName = categoryName,
+            existingQuantity = existingQty,
+            onAddToSales = { qty -> onAddToCart(product, qty) },
+            onDismiss = { selectedProduct = null },
+        )
+    }
+
     when {
         products.isEmpty() -> EmptyState(
             image = painterResource(R.drawable.sales_11),
@@ -221,13 +295,21 @@ private fun Products(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            items(products) { ProductCard(it) }
+            items(products) { product ->
+                val cartItem = cartItems.find { it.product.id == product.id }
+                ProductCard(
+                    product = product,
+                    inCart = cartItem != null,
+                    onTap = { selectedProduct = product },
+                    onRemove = { onRemoveFromCart(product.id) },
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun ProductCard(product: ProductModel) {
+private fun ProductCard(product: ProductModel, inCart: Boolean, onTap: () -> Unit, onRemove: () -> Unit) {
     val context = LocalContext.current
 
     val imageBitmap by produceState<ImageBitmap?>(initialValue = null, key1 = product.imageUrl) {
@@ -235,7 +317,7 @@ private fun ProductCard(product: ProductModel) {
             product.imageUrl?.let { url ->
                 runCatching {
                     context.contentResolver
-                        .openInputStream(Uri.parse(url))
+                        .openInputStream(url.toUri())
                         ?.use { BitmapFactory.decodeStream(it)?.asImageBitmap() }
                 }.getOrNull()
             }
@@ -246,9 +328,13 @@ private fun ProductCard(product: ProductModel) {
         modifier = Modifier
             .border(
                 width = StocklifyStroke.s,
-                color = StocklifyTheme.colors.transparentPrimary600,
+                color = if (inCart) StocklifyTheme.colors.primary500 else StocklifyTheme.colors.transparentPrimary600,
                 shape = RoundedCornerShape(StocklifyRadius.s)
             )
+            .background(
+                if (inCart) StocklifyTheme.colors.primary100 else Color.Transparent
+            )
+            .clickable(onClick = onTap)
             .padding(StocklifySpacing.m)
     ) {
         if (imageBitmap != null) {
@@ -272,36 +358,56 @@ private fun ProductCard(product: ProductModel) {
         }
 
         Spacer(modifier = Modifier.height(StocklifySize.extraSmall))
-        Text(
-            text = product.name,
-            style = StocklifyTextStyles.subtitleXs,
-            color = StocklifyTheme.colors.primary700
-        )
+        Row(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = product.name,
+                    style = StocklifyTextStyles.subtitleXs,
+                    color = StocklifyTheme.colors.primary700
+                )
 
-        Text(
-            text = "₱${product.sellingPrice}",
-            style = StocklifyTextStyles.subtitleXs,
-            color = StocklifyTheme.colors.typography400
-        )
+                Text(
+                    text = "₱${product.sellingPrice}",
+                    style = StocklifyTextStyles.subtitleXs,
+                    color = StocklifyTheme.colors.typography400
+                )
 
-        Text(
-            text = "Stock ${product.stock}",
-            style = StocklifyTextStyles.subtitleXxs,
-            color = StocklifyTheme.colors.typography100
-        )
+                Text(
+                    text = "Stock ${product.stock}",
+                    style = StocklifyTextStyles.subtitleXxs,
+                    color = StocklifyTheme.colors.typography100
+                )
+            }
+
+            IconButton(onClick = if (inCart) onRemove else onTap) {
+                Icon(
+                    painter = painterResource(
+                        if (inCart) R.drawable.outlined_circle_minus
+                        else R.drawable.outlined_circle_plus
+                    ),
+                    contentDescription = if (inCart) "Remove" else "Add",
+                    tint = StocklifyTheme.colors.primary700
+                )
+            }
+        }
     }
 }
 
 @Composable
-private fun SearchField() {
+private fun SearchField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    filterCount: Int,
+    onFilterClick: () -> Unit,
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(StocklifySpacing.columnGap)
     ) {
         StocklifyTextField(
             modifier = Modifier.weight(1f),
-            value = "",
-            onValueChange = { },
+            value = value,
+            onValueChange = onValueChange,
             placeholder = "Search by Product...",
             leadingIcon = {
                 Image(
@@ -322,14 +428,52 @@ private fun SearchField() {
             },
         )
 
-        IconButton(onClick = {}) {
-            Icon(
-                painter = painterResource(R.drawable.outlined_filter),
-                contentDescription = "Filter",
-                tint = StocklifyTheme.colors.primary700
-            )
+        Box {
+            IconButton(onClick = onFilterClick) {
+                Icon(
+                    painter = painterResource(if (filterCount > 0) R.drawable.filled_filter else R.drawable.outlined_filter),
+                    contentDescription = "Filter",
+                    tint = StocklifyTheme.colors.primary700,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+            if (filterCount > 0) {
+                Box(
+                    modifier = Modifier
+                        .size(16.dp)
+                        .clip(CircleShape)
+                        .background(StocklifyTheme.colors.primary500)
+                        .align(Alignment.TopEnd),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = filterCount.toString(),
+                        style = StocklifyTheme.textStyles.bodyS.copy(
+                            fontSize = TextUnit(8f, TextUnitType.Sp)
+                        ),
+                        color = StocklifyStaticColors.white,
+                    )
+                }
+            }
         }
     }
+}
+
+@Composable
+fun TotalSales(modifier: Modifier, itemCount: Int, total: Double, onClick: (() -> Unit)? = null) {
+    StocklifyPrimaryCard(
+        modifier = modifier,
+        title = "Current Sale ($itemCount ${if (itemCount == 1) "item" else "items"})",
+        content = "₱ ${"%.2f".format(total)}",
+        titleColor = StocklifyTheme.colors.primary500,
+        contentColor = StocklifyTheme.colors.primary700,
+        titleStyle = StocklifyTextStyles.subtitleXs,
+        contentStyle = StocklifyTextStyles.subtitleL,
+        leadingIcon = painterResource(R.drawable.filled_cart_3),
+        leadingIconSize = StocklifySize.small,
+        trailingIcon = painterResource(R.drawable.outlined_right_arrow),
+        onClick = onClick,
+    )
 }
 
 @Preview(showBackground = true, showSystemUi = true)
@@ -339,6 +483,7 @@ private fun SalesModeScreenPreview() {
         SalesModeContent(
             onAddManually = {},
             onScanProduct = {},
+            onCurrentSales = {},
             state = SalesModeUiState(
                 categories = listOf(
                     Category(id = 1, name = "Canned Goods"),
@@ -346,10 +491,23 @@ private fun SalesModeScreenPreview() {
                     Category(id = 3, name = "Snacks"),
                 ),
                 products = listOf(
-                    ProductModel(id = 1, code = "P0001", name = "Ligo Sardines 155g", sellingPrice = 28.50, categoryId = 1, stock = 48),
-                    ProductModel(id = 2, code = "P0002", name = "Coca-Cola 1.5L", sellingPrice = 75.00, categoryId = 2, stock = 12),
+                    ProductModel(
+                        id = 1,
+                        code = "P0001",
+                        name = "Ligo Sardines 155g",
+                        sellingPrice = 28.50,
+                        categoryId = 1,
+                        stock = 48
+                    ),
+                    ProductModel(
+                        id = 2,
+                        code = "P0002",
+                        name = "Coca-Cola 1.5L",
+                        sellingPrice = 75.00,
+                        categoryId = 2,
+                        stock = 12
+                    ),
                 ),
-                selectedCategoryId = null,
             ),
             onAction = {},
         )

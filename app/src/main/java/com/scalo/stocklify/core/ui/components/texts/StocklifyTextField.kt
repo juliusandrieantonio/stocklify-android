@@ -12,6 +12,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.scalo.stocklify.core.ui.theme.StocklifyRadius
 import com.scalo.stocklify.core.ui.theme.StocklifyStroke
@@ -33,6 +34,7 @@ fun StocklifyTextField(
     supportingText: String? = null,
     optional: Boolean = false,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    textAlign: TextAlign? = null,
 ) {
     Column(
         modifier = modifier.fillMaxWidth()
@@ -84,7 +86,8 @@ fun StocklifyTextField(
             isError = isError,
             keyboardOptions = keyboardOptions,
             shape = RoundedCornerShape(StocklifyRadius.s),
-            textStyle = StocklifyTheme.textStyles.bodyM
+            textStyle = if (textAlign != null) StocklifyTheme.textStyles.bodyM.copy(textAlign = textAlign)
+                        else StocklifyTheme.textStyles.bodyM
         )
 
         supportingText?.let {

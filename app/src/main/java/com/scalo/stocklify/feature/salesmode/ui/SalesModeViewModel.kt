@@ -9,16 +9,21 @@ import com.scalo.stocklify.core.data.database.dao.StoreDao
 import com.scalo.stocklify.core.data.database.dao.StoreProductMappingDao
 import com.scalo.stocklify.core.data.database.mapper.toDomain
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+private const val LOW_STOCK_THRESHOLD = 10L
+
+@OptIn(FlowPreview::class)
 @HiltViewModel
 class SalesModeViewModel @Inject constructor(
     private val storeDao: StoreDao,
@@ -34,15 +39,30 @@ class SalesModeViewModel @Inject constructor(
     val event = _event.asSharedFlow()
 
     private var allProducts: List<ProductModel> = emptyList()
+    private val _searchQuery = MutableStateFlow("")
 
     init {
         load()
+        viewModelScope.launch {
+            _searchQuery
+                .debounce(300)
+                .collect { query ->
+                    _state.update {
+                        it.copy(products = filterProducts(allProducts, query, it.filter))
+                    }
+                }
+        }
     }
 
     fun onAction(action: SalesModeAction) {
         when (action) {
             SalesModeAction.Refresh -> load()
             is SalesModeAction.SelectCategory -> selectCategory(action.categoryId)
+            is SalesModeAction.Search -> search(action.query)
+            is SalesModeAction.ApplyFilter -> applyFilter(action.filter)
+            is SalesModeAction.AddToCart -> addToCart(action.product, action.quantity)
+            is SalesModeAction.RemoveFromCart -> removeFromCart(action.productId)
+            SalesModeAction.ClearCart -> _state.update { it.copy(cartItems = emptyList()) }
         }
     }
 
@@ -86,7 +106,7 @@ class SalesModeViewModel @Inject constructor(
                     it.copy(
                         isLoading = false,
                         categories = categories,
-                        products = filterProducts(products, it.selectedCategoryId),
+                        products = filterProducts(products, it.searchQuery, it.filter),
                     )
                 }
             }
@@ -95,15 +115,72 @@ class SalesModeViewModel @Inject constructor(
 
     private fun selectCategory(categoryId: Long?) {
         _state.update {
+            val updated = it.filter.copy(categoryId = categoryId)
             it.copy(
-                selectedCategoryId = categoryId,
-                products = filterProducts(allProducts, categoryId),
+                filter = updated,
+                products = filterProducts(allProducts, it.searchQuery, updated),
             )
         }
     }
 
-    private fun filterProducts(products: List<ProductModel>, categoryId: Long?): List<ProductModel> {
-        return if (categoryId == null) products
-        else products.filter { it.categoryId == categoryId }
+    private fun search(query: String) {
+        _state.update { it.copy(searchQuery = query) }
+        _searchQuery.value = query
+    }
+
+    private fun applyFilter(filter: SalesModeFilter) {
+        _state.update {
+            it.copy(
+                filter = filter,
+                products = filterProducts(allProducts, it.searchQuery, filter),
+            )
+        }
+    }
+
+    private fun addToCart(product: ProductModel, quantity: Int) {
+        _state.update { state ->
+            val existing = state.cartItems.indexOfFirst { it.product.id == product.id }
+            val updated = if (existing >= 0) {
+                state.cartItems.toMutableList().also { it[existing] = it[existing].copy(quantity = quantity) }
+            } else {
+                state.cartItems + CartItem(product, quantity)
+            }
+            state.copy(cartItems = updated)
+        }
+    }
+
+    private fun removeFromCart(productId: Long) {
+        _state.update { state ->
+            state.copy(cartItems = state.cartItems.filter { it.product.id != productId })
+        }
+    }
+
+    private fun filterProducts(
+        products: List<ProductModel>,
+        query: String,
+        filter: SalesModeFilter,
+    ): List<ProductModel> {
+        return products
+            .filter { product ->
+                (filter.categoryId == null || product.categoryId == filter.categoryId) &&
+                (query.isBlank() || product.name.contains(query, ignoreCase = true) || product.code.contains(query, ignoreCase = true)) &&
+                (filter.minPrice == null || product.sellingPrice >= filter.minPrice) &&
+                (filter.maxPrice == null || product.sellingPrice <= filter.maxPrice) &&
+                when (filter.stockStatus) {
+                    StockStatus.All         -> true
+                    StockStatus.InStock     -> product.stock > LOW_STOCK_THRESHOLD
+                    StockStatus.LowStock    -> product.stock in 1..LOW_STOCK_THRESHOLD
+                    StockStatus.OutOfStock  -> product.stock == 0L
+                }
+            }
+            .let { list ->
+                when (filter.sortOption) {
+                    SortOption.NameAsc   -> list.sortedBy { it.name }
+                    SortOption.NameDesc  -> list.sortedByDescending { it.name }
+                    SortOption.PriceAsc  -> list.sortedBy { it.sellingPrice }
+                    SortOption.PriceDesc -> list.sortedByDescending { it.sellingPrice }
+                    SortOption.StockAsc  -> list.sortedBy { it.stock }
+                }
+            }
     }
 }

@@ -57,7 +57,8 @@ object StocklifySize {
     val small: Dp = 36.dp
     val medium: Dp = 48.dp
     val large: Dp = 64.dp
-    val xlarge: Dp = 128.dp
+    val xLarge: Dp = 86.dp
+    val xxlarge: Dp = 128.dp
 }
 
 private val LocalStocklifyColors = staticCompositionLocalOf { LightStocklifyColors }

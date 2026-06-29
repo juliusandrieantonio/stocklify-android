@@ -28,4 +28,11 @@ sealed class Screen(val route: String) {
         }
     }
     object StoreReadyScreen : Screen("storeReady")
+    object CurrentSales : Screen("currentSales")
+    object Checkout : Screen("checkout/{total}") {
+        fun route(total: Double) = "checkout/$total"
+    }
+    object SalesCompleted : Screen("salesCompleted/{total}/{payment}/{change}") {
+        fun route(total: Double, payment: Double, change: Double) = "salesCompleted/$total/$payment/$change"
+    }
 }

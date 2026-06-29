@@ -38,10 +38,12 @@ fun StocklifyStatusChip(
         horizontal = when (size) {
             StocklifyChipSize.Small -> 8.dp
             StocklifyChipSize.Medium -> 12.dp
+            StocklifyChipSize.Large -> 16.dp
         },
         vertical = when (size) {
             StocklifyChipSize.Small -> 4.dp
             StocklifyChipSize.Medium -> 6.dp
+            StocklifyChipSize.Large -> 8.dp
         },
     )
     val textStyle = StocklifyTheme.textStyles.subtitleXs

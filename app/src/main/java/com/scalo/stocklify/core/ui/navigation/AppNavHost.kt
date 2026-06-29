@@ -16,6 +16,10 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.scalo.stocklify.core.util.Screen
 import com.scalo.stocklify.feature.home.ui.HomeScreen
+import com.scalo.stocklify.feature.salesmode.ui.SalesModeViewModel
+import com.scalo.stocklify.feature.salesmode.ui.screens.CheckoutScreen
+import com.scalo.stocklify.feature.salesmode.ui.screens.CurrentSalesScreen
+import com.scalo.stocklify.feature.salesmode.ui.screens.SalesCompletedScreen
 import com.scalo.stocklify.feature.onboarding.ui.OnboardingScreen
 import com.scalo.stocklify.feature.products.ui.screens.AddEditProductScreen
 import com.scalo.stocklify.feature.products.ui.screens.AddProductOptionScreen
@@ -50,15 +54,84 @@ fun AppNavHost(
             )
         }
 
-        composable(Screen.Home.route) {
-            HomeScreen(
-                onAddManually = {
-                    navController.navigate(Screen.AddProductManually.route())
-                },
-                onScanProduct = {
-                    navController.navigate("scan_flow")
-                },
-            )
+        navigation(
+            startDestination = Screen.Home.route,
+            route = "home_flow"
+        ) {
+            composable(Screen.Home.route) { entry ->
+                val parentEntry = remember(entry) { navController.getBackStackEntry("home_flow") }
+                val salesViewModel: SalesModeViewModel = hiltViewModel(parentEntry)
+                HomeScreen(
+                    salesViewModel = salesViewModel,
+                    onAddManually = {
+                        navController.navigate(Screen.AddProductManually.route())
+                    },
+                    onScanProduct = {
+                        navController.navigate("scan_flow")
+                    },
+                    onCurrentSales = {
+                        navController.navigate(Screen.CurrentSales.route)
+                    },
+                )
+            }
+
+            composable(Screen.CurrentSales.route) { entry ->
+                val parentEntry = remember(entry) { navController.getBackStackEntry("home_flow") }
+                val salesViewModel: SalesModeViewModel = hiltViewModel(parentEntry)
+                val state by salesViewModel.state.collectAsState()
+                CurrentSalesScreen(
+                    viewModel = salesViewModel,
+                    onBack = { navController.popBackStack() },
+                    onCheckout = { navController.navigate(Screen.Checkout.route(state.cartTotal)) },
+                )
+            }
+
+            composable(
+                route = Screen.Checkout.route,
+                arguments = listOf(navArgument("total") { type = NavType.FloatType }),
+            ) { entry ->
+                val parentEntry = remember(entry) { navController.getBackStackEntry("home_flow") }
+                val salesViewModel: SalesModeViewModel = hiltViewModel(parentEntry)
+                val total = entry.arguments?.getFloat("total")?.toDouble() ?: 0.0
+                CheckoutScreen(
+                    total = total,
+                    onBack = { navController.popBackStack() },
+                    onCompleteSales = { payment, change ->
+                        salesViewModel.onAction(com.scalo.stocklify.feature.salesmode.ui.SalesModeAction.ClearCart)
+                        navController.navigate(Screen.SalesCompleted.route(total, payment, change)) {
+                            popUpTo(Screen.CurrentSales.route) { inclusive = true }
+                        }
+                    },
+                )
+            }
+
+            composable(
+                route = Screen.SalesCompleted.route,
+                arguments = listOf(
+                    navArgument("total") { type = NavType.FloatType },
+                    navArgument("payment") { type = NavType.FloatType },
+                    navArgument("change") { type = NavType.FloatType },
+                ),
+            ) { entry ->
+                val total = entry.arguments?.getFloat("total")?.toDouble() ?: 0.0
+                val payment = entry.arguments?.getFloat("payment")?.toDouble() ?: 0.0
+                val change = entry.arguments?.getFloat("change")?.toDouble() ?: 0.0
+                SalesCompletedScreen(
+                    total = total,
+                    paymentReceived = payment,
+                    change = change,
+                    onNewSales = {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.SalesCompleted.route) { inclusive = true }
+                        }
+                    },
+                    onViewRecords = {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.SalesCompleted.route) { inclusive = true }
+                        }
+                    },
+                )
+            }
         }
 
         composable(Screen.CreateJoinStore.route) {
@@ -89,7 +162,7 @@ fun AppNavHost(
                     navController.navigate(Screen.AddProductOption.route)
                 },
                 onLater = {
-                    navController.navigate(Screen.Home.route) {
+                    navController.navigate("home_flow") {
                         popUpTo(Screen.StoreCreated.route) { inclusive = true }
                     }
                 }
@@ -100,7 +173,7 @@ fun AppNavHost(
             AddProductOptionScreen(
                 onBack = { navController.popBackStack() },
                 onLater = {
-                    navController.navigate(Screen.Home.route) {
+                    navController.navigate("home_flow") {
                         popUpTo(Screen.AddProductOption.route) { inclusive = true }
                     }
                 },
@@ -126,7 +199,7 @@ fun AppNavHost(
                         navController.navigate(Screen.ScanningProduct.route)
                     },
                     onLater = {
-                        navController.navigate(Screen.Home.route) {
+                        navController.navigate("home_flow") {
                             popUpTo("scan_flow") { inclusive = true }
                         }
                     },
@@ -209,7 +282,7 @@ fun AppNavHost(
                     }
                 },
                 onGoToInventory = {
-                    navController.navigate(Screen.Home.route) {
+                    navController.navigate("home_flow") {
                         popUpTo(Screen.ImportSuccessful.route) { inclusive = true }
                     }
                 },
@@ -252,7 +325,7 @@ fun AppNavHost(
         composable(Screen.StoreReadyScreen.route) {
             StoreReadyScreen(
                 onGoToSalesMode = {
-                    navController.navigate(Screen.Home.route) {
+                    navController.navigate("home_flow") {
                         popUpTo(Screen.StoreReadyScreen.route) { inclusive = true }
                     }
                 }
@@ -263,7 +336,7 @@ fun AppNavHost(
             JoinStoreScreen(
                 onBack = { navController.popBackStack() },
                 onJoined = {
-                    navController.navigate(Screen.Home.route) {
+                    navController.navigate("home_flow") {
                         popUpTo(Screen.JoinStore.route) { inclusive = true }
                     }
                 }

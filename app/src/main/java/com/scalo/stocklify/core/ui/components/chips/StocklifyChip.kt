@@ -22,10 +22,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.scalo.stocklify.core.ui.theme.StocklifyTheme
 
-enum class StocklifyChipSize { Small, Medium }
+enum class StocklifyChipSize { Small, Medium, Large }
 enum class StocklifyChipVariant { Filter, Assist, Status }
-
-internal enum class StocklifyChipStyle { Primary, Outline, Ghost }
 
 @Composable
 internal fun StocklifyChip(
@@ -48,18 +46,22 @@ internal fun StocklifyChip(
     val defaultHorizontalPadding = when (size) {
         StocklifyChipSize.Small -> 8.dp
         StocklifyChipSize.Medium -> 12.dp
+        StocklifyChipSize.Large -> 16.dp
     }
     val defaultVerticalPadding = when (size) {
         StocklifyChipSize.Small -> 4.dp
         StocklifyChipSize.Medium -> 6.dp
+        StocklifyChipSize.Large -> 8.dp
     }
     val textStyle = when (size) {
         StocklifyChipSize.Small -> StocklifyTheme.textStyles.subtitleXxs
         StocklifyChipSize.Medium -> StocklifyTheme.textStyles.subtitleXs
+        StocklifyChipSize.Large -> StocklifyTheme.textStyles.subtitleXs
     }
     val minHeight = when (size) {
         StocklifyChipSize.Small -> 24.dp
         StocklifyChipSize.Medium -> 32.dp
+        StocklifyChipSize.Large -> 48.dp
     }
 
     val (containerColor, contentColor, borderColor) = when (variant) {

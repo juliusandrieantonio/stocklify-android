@@ -35,12 +35,15 @@ import com.scalo.stocklify.feature.dashboard.ui.DashboardScreen
 import com.scalo.stocklify.feature.inventory.ui.InventoryScreen
 import com.scalo.stocklify.feature.profile.ui.ProfileScreen
 import com.scalo.stocklify.feature.records.ui.RecordsScreen
-import com.scalo.stocklify.feature.salesmode.ui.SalesModeScreen
+import com.scalo.stocklify.feature.salesmode.ui.SalesModeViewModel
+import com.scalo.stocklify.feature.salesmode.ui.screens.SalesModeScreen
 
 @Composable
 fun HomeScreen(
+    salesViewModel: SalesModeViewModel,
     onAddManually: () -> Unit,
     onScanProduct: () -> Unit,
+    onCurrentSales: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val storeName by viewModel.storeName.collectAsState()
@@ -107,8 +110,10 @@ fun HomeScreen(
 
             composable(BottomNavItem.SalesMode.route) {
                 SalesModeScreen(
+                    viewModel = salesViewModel,
                     onAddManually = onAddManually,
                     onScanProduct = onScanProduct,
+                    onCurrentSales = onCurrentSales,
                 )
             }
 

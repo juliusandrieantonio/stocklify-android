@@ -40,7 +40,7 @@ class MainViewModel @Inject constructor(
                     Screen.CreateJoinStore.route
 
                 else ->
-                    Screen.Home.route
+                    "home_flow"
             }
             _isLoading.value = false
         }

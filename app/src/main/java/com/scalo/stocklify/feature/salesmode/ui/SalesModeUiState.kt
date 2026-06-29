@@ -7,5 +7,9 @@ data class SalesModeUiState(
     val error: String? = null,
     val categories: List<Category> = emptyList(),
     val products: List<ProductModel> = emptyList(),
-    val selectedCategoryId: Long? = null,
-)
+    val searchQuery: String = "",
+    val filter: SalesModeFilter = SalesModeFilter(),
+    val cartItems: List<CartItem> = emptyList(),
+) {
+    val cartTotal: Double get() = cartItems.sumOf { it.subtotal }
+}

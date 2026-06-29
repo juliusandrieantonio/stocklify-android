@@ -1,5 +1,6 @@
 package com.scalo.stocklify.core.ui.components.cards
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -19,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
@@ -40,6 +42,7 @@ internal fun StocklifyCard(
     contentColor: Color? = null,
     titleStyle: TextStyle? = null,
     contentStyle: TextStyle? = null,
+    titleColor: Color? = null,
     gap: Dp? = null,
     leadingIconSize: Dp? = null,
     trailingIconSize: Dp? = null,
@@ -123,7 +126,7 @@ internal fun StocklifyCard(
                 Text(
                     text = title,
                     style = titleStyle ?: StocklifyTheme.textStyles.subtitleM,
-                    color = resolvedTitleColor,
+                    color = titleColor ?: resolvedTitleColor,
                 )
                 Spacer(modifier = Modifier.height(spacing.xs))
                 Text(
@@ -134,11 +137,12 @@ internal fun StocklifyCard(
             }
             trailingIcon?.let {
                 Spacer(modifier = Modifier.width(gap ?: spacing.s))
-                Icon(
+                Image(
                     painter = it,
                     contentDescription = null,
-                    tint = trailingIconTint ?: resolvedTitleColor,
                     modifier = trailingIconSize?.let { s -> Modifier.size(s) } ?: Modifier,
+                    colorFilter = if (trailingIconTint != null) {
+                        ColorFilter.tint(trailingIconTint) } else { null },
                 )
             }
         }

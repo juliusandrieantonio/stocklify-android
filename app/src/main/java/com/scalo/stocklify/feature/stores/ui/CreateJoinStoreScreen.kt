@@ -69,7 +69,7 @@ private fun HeaderSection() {
     Image(
         painter = painterResource(R.drawable.splash_logo),
         contentDescription = null,
-        modifier = Modifier.size(StocklifySize.xlarge, StocklifySize.smallest)
+        modifier = Modifier.size(StocklifySize.xxlarge, StocklifySize.smallest)
     )
 
     Text(

@@ -73,17 +73,17 @@ internal fun StocklifyButton(
     }
 
     val disabledContainerColor = when (variant) {
-        StocklifyButtonVariant.Primary   -> colors.primary200
+        StocklifyButtonVariant.Primary   -> colors.grayscale100
         StocklifyButtonVariant.Tertiary -> colors.grayscale100
-        StocklifyButtonVariant.Outline   -> Color.Transparent
-        StocklifyButtonVariant.Ghost     -> Color.Transparent
+        StocklifyButtonVariant.Outline   -> colors.grayscale100
+        StocklifyButtonVariant.Ghost     -> colors.grayscale100
     }
 
     val disabledContentColor = when (variant) {
-        StocklifyButtonVariant.Primary   -> colors.primary400
-        StocklifyButtonVariant.Tertiary -> colors.typography300
-        StocklifyButtonVariant.Outline   -> colors.grayscale300
-        StocklifyButtonVariant.Ghost     -> colors.grayscale300
+        StocklifyButtonVariant.Primary   -> colors.typography100
+        StocklifyButtonVariant.Tertiary -> colors.typography100
+        StocklifyButtonVariant.Outline   -> colors.typography100
+        StocklifyButtonVariant.Ghost     -> colors.typography100
     }
 
     val stroke = when (variant) {
