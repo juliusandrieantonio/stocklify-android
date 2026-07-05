@@ -13,7 +13,7 @@ interface StoreDao : BaseDao<StoreEntity> {
         FROM stores
         WHERE id = :id
     """)
-    suspend fun getById(id: Long): StoreEntity?
+    suspend fun getById(id: String): StoreEntity?
 
     @Query("""
         SELECT *

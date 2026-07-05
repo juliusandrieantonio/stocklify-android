@@ -7,7 +7,5 @@ interface StoreTypeRepository {
 
     fun getAllStoreTypes(): Flow<List<StoreType>>
 
-    suspend fun getStoreTypeById(id: Long): StoreType?
-
     suspend fun getStoreTypeByCode(code: String): StoreType?
 }

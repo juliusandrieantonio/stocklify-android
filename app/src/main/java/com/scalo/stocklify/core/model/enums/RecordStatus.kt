@@ -1,12 +1,12 @@
 package com.scalo.stocklify.core.model.enums
 
-enum class RecordStatus(val value: Int) {
-    ACTIVE(1),
-    INACTIVE(2),
-    DELETED(3);
+enum class RecordStatus(val value: String) {
+    ACTIVE("ACTIVE"),
+    INACTIVE("INACTIVE"),
+    DELETED("DELETED");
 
     companion object {
-        fun from(value: Int): RecordStatus {
+        fun from(value: String): RecordStatus {
             return entries.first { it.value == value }
         }
     }

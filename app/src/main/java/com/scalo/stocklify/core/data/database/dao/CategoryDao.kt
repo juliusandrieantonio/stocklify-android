@@ -11,9 +11,9 @@ interface CategoryDao : BaseDao<CategoryEntity> {
     @Query("""
         SELECT *
         FROM categories
-        WHERE id = :id
+        WHERE code = :code
     """)
-    suspend fun getById(id: Long): CategoryEntity?
+    suspend fun getByCode(code: String): CategoryEntity?
 
     @Query("""
         SELECT *

@@ -8,26 +8,15 @@ import com.scalo.stocklify.core.model.enums.RecordStatus
 @Entity(tableName = "categories")
 data class CategoryEntity(
 
-    @PrimaryKey(autoGenerate = true)
-    val id: Long = 0,
+    @PrimaryKey
+    @ColumnInfo(name = "code")
+    val code: String,
 
     @ColumnInfo(name = "name")
     val name: String,
 
     @ColumnInfo(name = "description")
     val description: String?,
-
-    @ColumnInfo(name = "updated_at")
-    val updatedAt: Long?,
-
-    @ColumnInfo(name = "updated_by")
-    val updatedBy: String?,
-
-    @ColumnInfo(name = "created_at")
-    val createdAt: Long,
-
-    @ColumnInfo(name = "created_by")
-    val createdBy: String,
 
     @ColumnInfo(name = "status")
     val status: RecordStatus,

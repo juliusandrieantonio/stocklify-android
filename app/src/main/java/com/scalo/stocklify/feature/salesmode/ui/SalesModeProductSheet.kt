@@ -136,7 +136,7 @@ fun SalesModeProductSheet(
                     Text(
                         text = "Stock: ${product.stock}",
                         style = StocklifyTextStyles.bodyS,
-                        color = if (product.stock == 0L) StocklifyTheme.colors.error
+                        color = if (product.stock == 0) StocklifyTheme.colors.error
                                 else StocklifyTheme.colors.typography100,
                     )
                     categoryName?.let {

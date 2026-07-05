@@ -16,15 +16,15 @@ sealed class Screen(val route: String) {
     object ImportSuccessful : Screen("importSuccessful/{count}") {
         fun route(count: Int) = "importSuccessful/$count"
     }
-    object AddProductManually : Screen("addProductManually?name={name}&price={price}&categoryId={categoryId}&reviewIndex={reviewIndex}&stock={stock}&imageUri={imageUri}") {
-        fun route(name: String? = null, price: Double? = null, categoryId: Long? = null, reviewIndex: Int? = null, stock: Long? = null, imageUri: android.net.Uri? = null): String {
+    object AddProductManually : Screen("addProductManually?name={name}&price={price}&categoryCode={categoryCode}&reviewIndex={reviewIndex}&stock={stock}&imageUri={imageUri}") {
+        fun route(name: String? = null, price: Double? = null, categoryCode: String? = null, reviewIndex: Int? = null, stock: Int? = null, imageUri: android.net.Uri? = null): String {
             val n = name?.let { android.net.Uri.encode(it) } ?: ""
             val p = price?.toString() ?: ""
-            val c = categoryId?.toString() ?: ""
+            val c = categoryCode?.let { android.net.Uri.encode(it) } ?: ""
             val r = reviewIndex?.toString() ?: ""
             val s = stock?.toString() ?: ""
             val i = imageUri?.let { android.net.Uri.encode(it.toString()) } ?: ""
-            return "addProductManually?name=$n&price=$p&categoryId=$c&reviewIndex=$r&stock=$s&imageUri=$i"
+            return "addProductManually?name=$n&price=$p&categoryCode=$c&reviewIndex=$r&stock=$s&imageUri=$i"
         }
     }
     object StoreReadyScreen : Screen("storeReady")

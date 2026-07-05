@@ -8,7 +8,7 @@ data class ScannedProductResult(
     val rawText: String,
     val productName: String?,
     val price: Double?,
-    val stock: Long? = null,
+    val stock: Int? = null,
     val imageUri: Uri? = null,
     val matchedCategory: Category?,
     val suggestedProduct: Product?,

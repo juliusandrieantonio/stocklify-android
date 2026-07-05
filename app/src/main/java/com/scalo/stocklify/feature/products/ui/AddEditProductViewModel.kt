@@ -9,13 +9,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.scalo.stocklify.core.data.database.dao.CategoryDao
 import com.scalo.stocklify.core.data.database.dao.ProductDao
+import com.scalo.stocklify.core.data.database.dao.StockMovementDao
 import com.scalo.stocklify.core.data.database.dao.StoreDao
 import com.scalo.stocklify.core.data.database.dao.StoreProductMappingDao
-import com.scalo.stocklify.core.data.database.entity.ProductEntity
-import com.scalo.stocklify.core.data.database.entity.StoreProductMappingEntity
 import com.scalo.stocklify.core.data.database.mapper.toDomain
-import com.scalo.stocklify.core.model.enums.RecordStatus
+import com.scalo.stocklify.core.data.database.mapper.toEntity
+import com.scalo.stocklify.core.model.enums.StockMovementReason
 import com.scalo.stocklify.core.model.models.Category
+import com.scalo.stocklify.core.model.models.Product
+import com.scalo.stocklify.core.model.models.StockMovement
+import com.scalo.stocklify.core.model.models.StoreProductMapping
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -48,8 +51,8 @@ sealed class SaveState {
         val index: Int,
         val name: String,
         val price: Double?,
-        val categoryId: Long?,
-        val stock: Long?,
+        val categoryCode: String?,
+        val stock: Int?,
         val imageUri: Uri?,
     ) : SaveState()
     data class Error(val message: String) : SaveState()
@@ -62,6 +65,7 @@ class AddEditProductViewModel @Inject constructor(
     private val categoryDao: CategoryDao,
     private val storeDao: StoreDao,
     private val storeProductMappingDao: StoreProductMappingDao,
+    private val stockMovementDao: StockMovementDao,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -87,9 +91,8 @@ class AddEditProductViewModel @Inject constructor(
     private val _saveState = MutableStateFlow<SaveState>(SaveState.Idle)
     val saveState: StateFlow<SaveState> = _saveState.asStateFlow()
 
-    private val preFilledCategoryId: Long? = savedStateHandle.get<String>("categoryId")
-        ?.toLongOrNull()
-        ?.takeIf { it > 0 }
+    private val preFilledCategoryCode: String? = savedStateHandle.get<String>("categoryCode")
+        ?.takeIf { it.isNotBlank() }
 
     // Non-null when launched from ReviewImportedProductScreen to edit a scanned product
     val reviewIndex: Int? = savedStateHandle.get<String>("reviewIndex")?.toIntOrNull()
@@ -106,8 +109,8 @@ class AddEditProductViewModel @Inject constructor(
             categoryDao.getAll().collect { entities ->
                 val list = entities.map { it.toDomain() }
                 _categories.value = list
-                if (_formState.value.selectedCategory == null && preFilledCategoryId != null) {
-                    list.find { it.id == preFilledCategoryId }?.let { cat ->
+                if (_formState.value.selectedCategory == null && preFilledCategoryCode != null) {
+                    list.find { it.code == preFilledCategoryCode }?.let { cat ->
                         _formState.value = _formState.value.copy(selectedCategory = cat)
                     }
                 }
@@ -169,7 +172,7 @@ class AddEditProductViewModel @Inject constructor(
             (form.price.toDoubleOrNull() == null || form.price.toDouble() < 0)) "Enter a valid price"
         else null
         val stockError = if (form.stock.isBlank()) "Stock quantity is required"
-        else if (form.stock.toLongOrNull() == null || form.stock.toLong() < 0) "Enter a valid quantity"
+        else if (form.stock.toIntOrNull() == null || form.stock.toInt() < 0) "Enter a valid quantity"
         else null
 
         if (nameError != null || priceError != null || stockError != null) {
@@ -186,8 +189,8 @@ class AddEditProductViewModel @Inject constructor(
                 index = reviewIndex,
                 name = form.name.trim(),
                 price = form.price.toDoubleOrNull(),
-                categoryId = form.selectedCategory?.id,
-                stock = form.stock.toLongOrNull(),
+                categoryCode = form.selectedCategory?.code,
+                stock = form.stock.toIntOrNull(),
                 imageUri = form.imageUri,
             )
             return
@@ -199,39 +202,37 @@ class AddEditProductViewModel @Inject constructor(
                 val store = storeDao.getAll().first().firstOrNull()
                     ?: throw IllegalStateException("No store found")
 
-                val categoryId = form.selectedCategory?.id
+                val categoryCode = form.selectedCategory?.code
                     ?: throw IllegalStateException("No category selected")
 
-                val productId = productDao.insert(
-                    ProductEntity(
-                        code = UUID.randomUUID().toString(),
-                        name = form.name.trim(),
-                        sellingPrice = form.price.toDouble(),
-                        costPrice = form.price.toDouble(),
-                        imageUrl = form.imageUri?.toString(),
-                        categoryId = categoryId,
-                        createdAt = System.currentTimeMillis(),
-                        createdBy = "",
-                        updatedAt = null,
-                        updatedBy = null,
-                        status = RecordStatus.ACTIVE,
-                        version = 1,
-                    )
-                )
+                val now = System.currentTimeMillis()
 
-                storeProductMappingDao.insert(
-                    StoreProductMappingEntity(
-                        storeId = store.id,
-                        productId = productId,
-                        quantity = form.stock.toLong(),
-                        supplierId = null,
-                        createdAt = System.currentTimeMillis(),
-                        createdBy = "",
-                        updatedAt = null,
-                        updatedBy = null,
-                        status = RecordStatus.ACTIVE,
-                        version = 1,
-                    )
+                val product = Product(
+                    organizationId = store.organizationId,
+                    name = form.name.trim(),
+                    imageUrl = form.imageUri?.toString(),
+                    createdAt = now,
+                )
+                productDao.insert(product.toEntity())
+
+                val mapping = StoreProductMapping(
+                    storeId = store.id,
+                    productId = product.id,
+                    categoryCode = categoryCode,
+                    sellingPrice = form.price.toDoubleOrNull() ?: 0.0,
+                    costPrice = form.price.toDoubleOrNull() ?: 0.0,
+                    quantity = 0,
+                    createdAt = now,
+                )
+                storeProductMappingDao.insert(mapping.toEntity())
+
+                stockMovementDao.insert(
+                    StockMovement(
+                        storeProductId = mapping.id,
+                        quantity = form.stock.toInt(),
+                        reason = StockMovementReason.INITIAL_STOCK,
+                        createdAt = now,
+                    ).toEntity()
                 )
 
                 _saveState.value = SaveState.Success

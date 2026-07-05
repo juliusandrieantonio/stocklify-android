@@ -10,12 +10,17 @@ fun SupplierEntity.toDomain(): Supplier {
         name = name,
         contactPerson = contactPerson,
         phone = phone,
+        email = email,
+        address = address,
         createdAt = createdAt,
         createdBy = createdBy,
         updatedAt = updatedAt,
         updatedBy = updatedBy,
         status = status,
-        version = version
+        version = version,
+        deletedAt = deletedAt,
+        deletedBy = deletedBy,
+        syncStatus = syncStatus
     )
 }
 
@@ -26,11 +31,16 @@ fun Supplier.toEntity(): SupplierEntity {
         name = name,
         contactPerson = contactPerson,
         phone = phone,
+        email = email,
+        address = address,
         createdAt = createdAt,
         createdBy = createdBy ?: "",
         updatedAt = updatedAt,
         updatedBy = updatedBy,
+        deletedAt = deletedAt,
+        deletedBy = deletedBy,
         status = status,
-        version = version
+        version = version,
+        syncStatus = syncStatus
     )
 }

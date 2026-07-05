@@ -1,9 +1,33 @@
+import com.android.build.api.dsl.ApplicationProductFlavor
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.dagger.hilt)
     alias(libs.plugins.kotlin.ksp)
+    alias(libs.plugins.kotlin.serialization)
+}
+
+val localProperties = Properties().apply {
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.inputStream().use { load(it) }
+    }
+}
+
+fun ApplicationProductFlavor.buildConfigFieldFromLocalProperties(envSuffix: String) {
+    buildConfigField(
+        "String",
+        "SUPABASE_URL",
+        "\"${localProperties.getProperty("SUPABASE_URL_$envSuffix", "")}\""
+    )
+    buildConfigField(
+        "String",
+        "SUPABASE_ANON_KEY",
+        "\"${localProperties.getProperty("SUPABASE_ANON_KEY_$envSuffix", "")}\""
+    )
 }
 
 android {
@@ -18,6 +42,37 @@ android {
         versionName = "1.0"
         ndk {
             abiFilters += "arm64-v8a"
+        }
+    }
+
+    flavorDimensions += "env"
+
+    productFlavors {
+        create("dev") {
+            dimension = "env"
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+            resValue("string", "app_name", "Stocklify Dev")
+            buildConfigFieldFromLocalProperties("DEV")
+        }
+        create("qa") {
+            dimension = "env"
+            applicationIdSuffix = ".qa"
+            versionNameSuffix = "-qa"
+            resValue("string", "app_name", "Stocklify QA")
+            buildConfigFieldFromLocalProperties("QA")
+        }
+        create("uat") {
+            dimension = "env"
+            applicationIdSuffix = ".uat"
+            versionNameSuffix = "-uat"
+            resValue("string", "app_name", "Stocklify UAT")
+            buildConfigFieldFromLocalProperties("UAT")
+        }
+        create("prod") {
+            dimension = "env"
+            resValue("string", "app_name", "Stocklify")
+            buildConfigFieldFromLocalProperties("PROD")
         }
     }
 
@@ -100,5 +155,15 @@ dependencies {
     ksp(libs.room.compiler)
     implementation(libs.sqlcipher)
     implementation(libs.sqlite)
+
+    // Supabase
+    implementation(platform(libs.supabase.bom))
+    implementation(libs.supabase.postgrest)
+    implementation(libs.supabase.auth)
+    implementation(libs.supabase.storage)
+    implementation(libs.supabase.realtime)
+    implementation(libs.supabase.functions)
+    implementation(libs.ktor.client.okhttp)
+    implementation(libs.kotlinx.serialization.json)
 
 }

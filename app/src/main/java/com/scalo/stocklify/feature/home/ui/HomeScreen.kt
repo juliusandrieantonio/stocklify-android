@@ -44,6 +44,7 @@ fun HomeScreen(
     onAddManually: () -> Unit,
     onScanProduct: () -> Unit,
     onCurrentSales: () -> Unit,
+    onSignedOut: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val storeName by viewModel.storeName.collectAsState()
@@ -122,7 +123,7 @@ fun HomeScreen(
             }
 
             composable(BottomNavItem.Profile.route) {
-                ProfileScreen()
+                ProfileScreen(onSignedOut = onSignedOut)
             }
         }
     }

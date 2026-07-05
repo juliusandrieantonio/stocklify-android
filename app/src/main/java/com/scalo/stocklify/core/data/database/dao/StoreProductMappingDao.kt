@@ -13,7 +13,7 @@ interface StoreProductMappingDao : BaseDao<StoreProductMappingEntity> {
         FROM store_product_mapping
         WHERE id = :id
     """)
-    suspend fun getById(id: Long): StoreProductMappingEntity?
+    suspend fun getById(id: String): StoreProductMappingEntity?
 
     @Query("""
         SELECT *
@@ -21,14 +21,14 @@ interface StoreProductMappingDao : BaseDao<StoreProductMappingEntity> {
         WHERE store_id = :storeId
         ORDER BY id
     """)
-    fun getByStoreId(storeId: Long): Flow<List<StoreProductMappingEntity>>
+    fun getByStoreId(storeId: String): Flow<List<StoreProductMappingEntity>>
 
     @Query("""
         SELECT *
         FROM store_product_mapping
         WHERE store_id = :storeId AND product_id = :productId
     """)
-    suspend fun getByStoreAndProduct(storeId: Long, productId: Long): StoreProductMappingEntity?
+    suspend fun getByStoreAndProduct(storeId: String, productId: String): StoreProductMappingEntity?
 
     @Query("""
         SELECT *
@@ -36,8 +36,8 @@ interface StoreProductMappingDao : BaseDao<StoreProductMappingEntity> {
         WHERE store_id = :storeId AND supplier_id = :supplierId
         ORDER BY id
     """)
-    fun getByStoreAndSupplier(storeId: Long, supplierId: Long): Flow<List<StoreProductMappingEntity>>
+    fun getByStoreAndSupplier(storeId: String, supplierId: String): Flow<List<StoreProductMappingEntity>>
 
     @Query("SELECT COUNT(*) FROM store_product_mapping WHERE store_id = :storeId")
-    suspend fun getCountByStoreId(storeId: Long): Int
+    suspend fun getCountByStoreId(storeId: String): Int
 }

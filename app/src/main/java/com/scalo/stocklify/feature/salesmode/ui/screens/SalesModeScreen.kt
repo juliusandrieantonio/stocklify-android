@@ -126,7 +126,7 @@ private fun SalesModeContent(
 
             CategoryChips(
                 categories = state.categories,
-                selectedCategoryId = state.filter.categoryId,
+                selectedCategoryCode = state.filter.categoryCode,
                 onSelect = { onAction(SalesModeAction.SelectCategory(it)) },
             )
 
@@ -158,8 +158,8 @@ private fun SalesModeContent(
 @Composable
 private fun CategoryChips(
     categories: List<Category>,
-    selectedCategoryId: Long?,
-    onSelect: (Long?) -> Unit,
+    selectedCategoryCode: String?,
+    onSelect: (String?) -> Unit,
 ) {
     LazyRow(
         modifier = Modifier.fillMaxWidth(),
@@ -168,7 +168,7 @@ private fun CategoryChips(
         item {
             StocklifyFilterChip(
                 label = "All",
-                selected = selectedCategoryId == null,
+                selected = selectedCategoryCode == null,
                 onToggle = { onSelect(null) },
                 topIcon = {
                     Image(
@@ -176,7 +176,7 @@ private fun CategoryChips(
                         contentDescription = null,
                         modifier = Modifier.size(StocklifySize.extraSmall),
                         colorFilter = ColorFilter.tint(
-                            if (selectedCategoryId == null) {
+                            if (selectedCategoryCode == null) {
                                 StocklifyStaticColors.white
                             } else {
                                 StocklifyTheme.colors.primary700
@@ -190,13 +190,13 @@ private fun CategoryChips(
                 ),
             )
         }
-        items(items = categories, key = { it.id }) { category ->
+        items(items = categories, key = { it.code }) { category ->
             val iconRes = categoryIcon(category.name)
-            val isSelected = selectedCategoryId == category.id
+            val isSelected = selectedCategoryCode == category.code
             StocklifyFilterChip(
                 label = category.name,
                 selected = isSelected,
-                onToggle = { onSelect(category.id) },
+                onToggle = { onSelect(category.code) },
                 topIcon = iconRes?.let { res ->
                     {
                         Image(
@@ -227,12 +227,12 @@ private fun Products(
     onAddManually: () -> Unit,
     onScanProduct: () -> Unit,
     onAddToCart: (ProductModel, Int) -> Unit,
-    onRemoveFromCart: (Long) -> Unit,
+    onRemoveFromCart: (String) -> Unit,
 ) {
     var selectedProduct by remember { mutableStateOf<ProductModel?>(null) }
 
     selectedProduct?.let { product ->
-        val categoryName = categories.find { it.id == product.categoryId }?.name
+        val categoryName = categories.find { it.code == product.categoryCode }?.name
         val existingQty = cartItems.find { it.product.id == product.id }?.quantity ?: 1
         SalesModeProductSheet(
             product = product,
@@ -486,25 +486,27 @@ private fun SalesModeScreenPreview() {
             onCurrentSales = {},
             state = SalesModeUiState(
                 categories = listOf(
-                    Category(id = 1, name = "Canned Goods"),
-                    Category(id = 2, name = "Beverages"),
-                    Category(id = 3, name = "Snacks"),
+                    Category(code = "CANNED_GOODS", name = "Canned Goods"),
+                    Category(code = "BEVERAGES", name = "Beverages"),
+                    Category(code = "SNACKS", name = "Snacks"),
                 ),
                 products = listOf(
                     ProductModel(
-                        id = 1,
+                        id = "1",
+                        storeProductId = "1",
                         code = "P0001",
                         name = "Ligo Sardines 155g",
                         sellingPrice = 28.50,
-                        categoryId = 1,
+                        categoryCode = "CANNED_GOODS",
                         stock = 48
                     ),
                     ProductModel(
-                        id = 2,
+                        id = "2",
+                        storeProductId = "2",
                         code = "P0002",
                         name = "Coca-Cola 1.5L",
                         sellingPrice = 75.00,
-                        categoryId = 2,
+                        categoryCode = "BEVERAGES",
                         stock = 12
                     ),
                 ),

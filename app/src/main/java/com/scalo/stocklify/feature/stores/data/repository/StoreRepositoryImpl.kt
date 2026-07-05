@@ -3,7 +3,6 @@ package com.scalo.stocklify.feature.stores.data.repository
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.scalo.stocklify.core.data.database.dao.StoreDao
-import com.scalo.stocklify.core.data.database.entity.StoreEntity
 import com.scalo.stocklify.core.data.database.mapper.toDomain
 import com.scalo.stocklify.core.data.database.mapper.toEntity
 import com.scalo.stocklify.core.model.models.Store
@@ -16,11 +15,12 @@ class StoreRepositoryImpl @Inject constructor(
     private val storeDao: StoreDao
 ) : StoreRepository {
 
-    override suspend fun createStore(store: Store): Long {
-        return storeDao.insert(store.toEntity())
+    override suspend fun createStore(store: Store): String {
+        storeDao.insert(store.toEntity())
+        return store.id
     }
 
-    override suspend fun getStoreById(id: Long): Store? {
+    override suspend fun getStoreById(id: String): Store? {
         return storeDao.getById(id)?.toDomain()
     }
 

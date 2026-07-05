@@ -15,6 +15,8 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.scalo.stocklify.core.util.Screen
+import com.scalo.stocklify.feature.auth.ui.LoginScreen
+import com.scalo.stocklify.feature.auth.ui.RegisterScreen
 import com.scalo.stocklify.feature.home.ui.HomeScreen
 import com.scalo.stocklify.feature.salesmode.ui.SalesModeViewModel
 import com.scalo.stocklify.feature.salesmode.ui.screens.CheckoutScreen
@@ -47,8 +49,33 @@ fun AppNavHost(
         composable(Screen.Onboarding.route) {
             OnboardingScreen(
                 onFinished = {
-                    navController.navigate(Screen.CreateJoinStore.route) {
+                    navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Onboarding.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.Login.route) {
+            LoginScreen(
+                onLoggedIn = { hasStoreCached ->
+                    val destination = if (hasStoreCached) "home_flow" else Screen.CreateJoinStore.route
+                    navController.navigate(destination) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                },
+                onRegister = {
+                    navController.navigate(Screen.Register.route)
+                }
+            )
+        }
+
+        composable(Screen.Register.route) {
+            RegisterScreen(
+                onBack = { navController.popBackStack() },
+                onRegistered = {
+                    navController.navigate(Screen.CreateJoinStore.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
                     }
                 }
             )
@@ -71,6 +98,11 @@ fun AppNavHost(
                     },
                     onCurrentSales = {
                         navController.navigate(Screen.CurrentSales.route)
+                    },
+                    onSignedOut = {
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(0) { inclusive = true }
+                        }
                     },
                 )
             }
@@ -232,12 +264,12 @@ fun AppNavHost(
                     if (editedIndex >= 0) {
                         val name = entry.savedStateHandle.remove<String>("review_edit_name") ?: ""
                         val price = entry.savedStateHandle.remove<String>("review_edit_price")?.toDoubleOrNull()
-                        val categoryId = entry.savedStateHandle.remove<String>("review_edit_category_id")?.toLongOrNull()
-                        val stock = entry.savedStateHandle.remove<String>("review_edit_stock")?.toLongOrNull()
+                        val categoryCode = entry.savedStateHandle.remove<String>("review_edit_category_code")
+                        val stock = entry.savedStateHandle.remove<String>("review_edit_stock")?.toIntOrNull()
                         val imageUri = entry.savedStateHandle.remove<String>("review_edit_image_uri")
                             ?.takeIf { it.isNotEmpty() }?.let { Uri.parse(it) }
                         entry.savedStateHandle.remove<Int>("review_edit_index")
-                        viewModel.updateScannedProduct(editedIndex, name, price, categories.find { it.id == categoryId }, stock, imageUri)
+                        viewModel.updateScannedProduct(editedIndex, name, price, categories.find { it.code == categoryCode }, stock, imageUri)
                     }
                 }
 
@@ -256,7 +288,7 @@ fun AppNavHost(
                             Screen.AddProductManually.route(
                                 name = product.productName,
                                 price = product.price,
-                                categoryId = product.matchedCategory?.id,
+                                categoryCode = product.matchedCategory?.code,
                                 reviewIndex = index,
                                 stock = product.stock,
                                 imageUri = product.imageUri,
@@ -295,7 +327,7 @@ fun AppNavHost(
             arguments = listOf(
                 navArgument("name") { nullable = true; defaultValue = null },
                 navArgument("price") { nullable = true; defaultValue = null },
-                navArgument("categoryId") { nullable = true; defaultValue = null },
+                navArgument("categoryCode") { nullable = true; defaultValue = null },
                 navArgument("reviewIndex") { nullable = true; defaultValue = null },
                 navArgument("stock") { nullable = true; defaultValue = null },
                 navArgument("imageUri") { nullable = true; defaultValue = null },
@@ -308,12 +340,12 @@ fun AppNavHost(
                         popUpTo(Screen.AddProductManually.route) { inclusive = true }
                     }
                 },
-                onReviewEditDone = { index, name, price, categoryId, stock, imageUri ->
+                onReviewEditDone = { index, name, price, categoryCode, stock, imageUri ->
                     navController.previousBackStackEntry?.savedStateHandle?.run {
                         set("review_edit_index", index)
                         set("review_edit_name", name)
                         set("review_edit_price", price?.toString())
-                        set("review_edit_category_id", categoryId?.toString())
+                        set("review_edit_category_code", categoryCode)
                         set("review_edit_stock", stock?.toString())
                         set("review_edit_image_uri", imageUri?.toString())
                     }

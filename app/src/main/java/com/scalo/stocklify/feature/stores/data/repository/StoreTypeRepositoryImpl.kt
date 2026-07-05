@@ -17,10 +17,6 @@ class StoreTypeRepositoryImpl @Inject constructor(
             .map { entities -> entities.map { it.toDomain() } }
     }
 
-    override suspend fun getStoreTypeById(id: Long): StoreType? {
-        return storeTypeDao.getById(id)?.toDomain()
-    }
-
     override suspend fun getStoreTypeByCode(code: String): StoreType? {
         return storeTypeDao.getByCode(code)?.toDomain()
     }

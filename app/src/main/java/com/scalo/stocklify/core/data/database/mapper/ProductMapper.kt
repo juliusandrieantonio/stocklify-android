@@ -6,35 +6,37 @@ import com.scalo.stocklify.core.model.models.Product
 fun ProductEntity.toDomain(): Product {
     return Product(
         id = id,
-        code = code,
+        organizationId = organizationId,
         name = name,
-        sellingPrice = sellingPrice,
-        costPrice = costPrice,
+        description = description,
         imageUrl = imageUrl,
-        categoryId = categoryId,
         createdAt = createdAt,
         createdBy = createdBy,
         updatedAt = updatedAt,
         updatedBy = updatedBy,
         status = status,
-        version = version
+        version = version,
+        deletedAt = deletedAt,
+        deletedBy = deletedBy,
+        syncStatus = syncStatus
     )
 }
 
 fun Product.toEntity(): ProductEntity {
     return ProductEntity(
         id = id,
-        code = code,
+        organizationId = organizationId,
         name = name,
-        sellingPrice = sellingPrice,
-        costPrice = costPrice,
+        description = description,
         imageUrl = imageUrl,
-        categoryId = categoryId,
         createdAt = createdAt,
         createdBy = createdBy ?: "",
         updatedAt = updatedAt,
         updatedBy = updatedBy,
+        deletedAt = deletedAt,
+        deletedBy = deletedBy,
         status = status,
-        version = version
+        version = version,
+        syncStatus = syncStatus
     )
 }

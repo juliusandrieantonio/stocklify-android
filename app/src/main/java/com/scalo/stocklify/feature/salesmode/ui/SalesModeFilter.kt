@@ -18,14 +18,14 @@ enum class StockStatus(val label: String) {
 data class SalesModeFilter(
     val sortOption: SortOption = SortOption.NameAsc,
     val stockStatus: StockStatus = StockStatus.All,
-    val categoryId: Long? = null,
+    val categoryCode: String? = null,
     val minPrice: Double? = null,
     val maxPrice: Double? = null,
 ) {
     val activeCount: Int get() = listOf(
         sortOption != SortOption.NameAsc,
         stockStatus != StockStatus.All,
-        categoryId != null,
+        categoryCode != null,
         minPrice != null,
         maxPrice != null,
     ).count { it }

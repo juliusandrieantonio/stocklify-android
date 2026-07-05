@@ -13,22 +13,15 @@ interface ProductDao : BaseDao<ProductEntity> {
         FROM products
         WHERE id = :id
     """)
-    suspend fun getById(id: Long): ProductEntity?
+    suspend fun getById(id: String): ProductEntity?
 
     @Query("""
         SELECT *
         FROM products
-        WHERE code = :code
-    """)
-    suspend fun getByCode(code: String): ProductEntity?
-
-    @Query("""
-        SELECT *
-        FROM products
-        WHERE category_id = :categoryId
+        WHERE organization_id = :organizationId
         ORDER BY name
     """)
-    fun getByCategoryId(categoryId: Long): Flow<List<ProductEntity>>
+    fun getByOrganizationId(organizationId: String): Flow<List<ProductEntity>>
 
     @Query("""
         SELECT *

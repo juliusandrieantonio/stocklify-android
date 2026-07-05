@@ -6,51 +6,39 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.scalo.stocklify.core.model.enums.RecordStatus
+import com.scalo.stocklify.core.model.enums.SyncStatus
 
 @Entity(
     tableName = "products",
-    indices = [
-        Index(value = ["code"], unique = true),
-        Index(value = ["category_id"])
-    ],
     foreignKeys = [
         ForeignKey(
-            entity = CategoryEntity::class,
+            entity = OrganizationEntity::class,
             parentColumns = ["id"],
-            childColumns = ["category_id"],
-            onDelete = ForeignKey.RESTRICT,
-            onUpdate = ForeignKey.CASCADE
+            childColumns = ["organization_id"],
+            onDelete = ForeignKey.CASCADE
         )
+    ],
+    indices = [
+        Index("organization_id")
     ]
 )
 data class ProductEntity(
 
-    @PrimaryKey(autoGenerate = true)
-    val id: Long = 0,
+    @PrimaryKey
+    @ColumnInfo(name = "id")
+    val id: String,
 
-    @ColumnInfo(name = "code")
-    val code: String,
+    @ColumnInfo(name = "organization_id")
+    val organizationId: String,
 
     @ColumnInfo(name = "name")
     val name: String,
 
-    @ColumnInfo(name = "selling_price")
-    val sellingPrice: Double,
-
-    @ColumnInfo(name = "cost_price")
-    val costPrice: Double,
+    @ColumnInfo(name = "description")
+    val description: String?,
 
     @ColumnInfo(name = "image_url")
     val imageUrl: String?,
-
-    @ColumnInfo(name = "category_id")
-    val categoryId: Long,
-
-    @ColumnInfo(name = "updated_at")
-    val updatedAt: Long?,
-
-    @ColumnInfo(name = "updated_by")
-    val updatedBy: String?,
 
     @ColumnInfo(name = "created_at")
     val createdAt: Long,
@@ -58,9 +46,24 @@ data class ProductEntity(
     @ColumnInfo(name = "created_by")
     val createdBy: String,
 
+    @ColumnInfo(name = "updated_at")
+    val updatedAt: Long?,
+
+    @ColumnInfo(name = "updated_by")
+    val updatedBy: String?,
+
+    @ColumnInfo(name = "deleted_at")
+    val deletedAt: Long?,
+
+    @ColumnInfo(name = "deleted_by")
+    val deletedBy: String?,
+
     @ColumnInfo(name = "status")
     val status: RecordStatus,
 
     @ColumnInfo(name = "version")
-    val version: Long
+    val version: Long,
+
+    @ColumnInfo(name = "sync_status")
+    val syncStatus: SyncStatus = SyncStatus.SYNCED
 )

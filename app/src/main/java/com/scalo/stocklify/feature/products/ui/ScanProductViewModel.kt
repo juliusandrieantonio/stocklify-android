@@ -6,13 +6,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.scalo.stocklify.core.data.database.dao.CategoryDao
 import com.scalo.stocklify.core.data.database.dao.ProductDao
+import com.scalo.stocklify.core.data.database.dao.StockMovementDao
 import com.scalo.stocklify.core.data.database.dao.StoreDao
 import com.scalo.stocklify.core.data.database.dao.StoreProductMappingDao
-import com.scalo.stocklify.core.data.database.entity.ProductEntity
-import com.scalo.stocklify.core.data.database.entity.StoreProductMappingEntity
 import com.scalo.stocklify.core.data.database.mapper.toDomain
-import com.scalo.stocklify.core.model.enums.RecordStatus
+import com.scalo.stocklify.core.data.database.mapper.toEntity
+import com.scalo.stocklify.core.model.enums.StockMovementReason
 import com.scalo.stocklify.core.model.models.Category
+import com.scalo.stocklify.core.model.models.Product
+import com.scalo.stocklify.core.model.models.StockMovement
+import com.scalo.stocklify.core.model.models.StoreProductMapping
 import com.scalo.stocklify.feature.products.domain.usecase.RecognizeProductFromImageUseCase
 import com.scalo.stocklify.feature.products.model.ScannedProductResult
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,7 +24,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import java.util.UUID
 import javax.inject.Inject
 
 sealed class ScanningState {
@@ -45,6 +47,7 @@ class ScanProductViewModel @Inject constructor(
     private val categoryDao: CategoryDao,
     private val storeDao: StoreDao,
     private val storeProductMappingDao: StoreProductMappingDao,
+    private val stockMovementDao: StockMovementDao,
 ) : ViewModel() {
 
     private val _imageUri = MutableStateFlow<Uri?>(null)
@@ -67,7 +70,7 @@ class ScanProductViewModel @Inject constructor(
         }
     }
 
-    fun updateScannedProduct(index: Int, name: String, price: Double?, category: Category?, stock: Long?, imageUri: Uri?) {
+    fun updateScannedProduct(index: Int, name: String, price: Double?, category: Category?, stock: Int?, imageUri: Uri?) {
         val current = scanningState.value as? ScanningState.Success ?: return
         val updated = current.results.toMutableList()
         updated[index] = updated[index].copy(
@@ -133,36 +136,34 @@ class ScanProductViewModel @Inject constructor(
                     .filter { !it.productName.isNullOrBlank() && it.price != null && it.matchedCategory != null }
 
                 valid.forEach { result ->
-                    val productId = productDao.insert(
-                        ProductEntity(
-                            code = UUID.randomUUID().toString(),
-                            name = result.productName!!,
-                            sellingPrice = result.price!!,
-                            costPrice = result.price,
-                            imageUrl = result.imageUri?.toString(),
-                            categoryId = result.matchedCategory!!.id,
-                            createdAt = System.currentTimeMillis(),
-                            createdBy = "",
-                            updatedAt = null,
-                            updatedBy = null,
-                            status = RecordStatus.ACTIVE,
-                            version = 1
-                        )
-                    )
+                    val now = System.currentTimeMillis()
 
-                    storeProductMappingDao.insert(
-                        StoreProductMappingEntity(
-                            storeId = store.id,
-                            productId = productId,
-                            quantity = result.stock ?: 0L,
-                            supplierId = null,
-                            createdAt = System.currentTimeMillis(),
-                            createdBy = "",
-                            updatedAt = null,
-                            updatedBy = null,
-                            status = RecordStatus.ACTIVE,
-                            version = 1
-                        )
+                    val product = Product(
+                        organizationId = store.organizationId,
+                        name = result.productName!!,
+                        imageUrl = result.imageUri?.toString(),
+                        createdAt = now,
+                    )
+                    productDao.insert(product.toEntity())
+
+                    val mapping = StoreProductMapping(
+                        storeId = store.id,
+                        productId = product.id,
+                        categoryCode = result.matchedCategory!!.code,
+                        sellingPrice = result.price!!,
+                        costPrice = result.price,
+                        quantity = 0,
+                        createdAt = now,
+                    )
+                    storeProductMappingDao.insert(mapping.toEntity())
+
+                    stockMovementDao.insert(
+                        StockMovement(
+                            storeProductId = mapping.id,
+                            quantity = result.stock ?: 0,
+                            reason = StockMovementReason.INITIAL_STOCK,
+                            createdAt = now,
+                        ).toEntity()
                     )
                 }
 

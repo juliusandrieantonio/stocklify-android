@@ -6,15 +6,17 @@ import com.scalo.stocklify.core.config.DatabaseConfig
 import com.scalo.stocklify.core.data.database.AppDatabase
 import com.scalo.stocklify.core.data.database.callback.DatabaseCallback
 import com.scalo.stocklify.core.data.database.dao.CategoryDao
+import com.scalo.stocklify.core.data.database.dao.OrganizationDao
+import com.scalo.stocklify.core.data.database.dao.OrganizationMemberDao
 import com.scalo.stocklify.core.data.database.dao.ProductDao
+import com.scalo.stocklify.core.data.database.dao.StockMovementDao
 import com.scalo.stocklify.core.data.database.dao.StoreDao
 import com.scalo.stocklify.core.data.database.dao.StoreProductMappingDao
 import com.scalo.stocklify.core.data.database.dao.StoreTypeDao
 import com.scalo.stocklify.core.data.database.dao.SupplierDao
-import com.scalo.stocklify.core.data.database.migration.MIGRATION_1_2
-import com.scalo.stocklify.core.data.database.migration.MIGRATION_2_3
-import com.scalo.stocklify.core.data.database.migration.MIGRATION_3_4
-import com.scalo.stocklify.core.data.database.migration.MIGRATION_4_5
+import com.scalo.stocklify.core.data.database.dao.SyncCursorDao
+import com.scalo.stocklify.core.data.database.dao.SyncOutboxDao
+import com.scalo.stocklify.core.data.database.dao.UserStoreMappingDao
 import com.scalo.stocklify.core.data.database.util.DatabaseKeyManager
 import dagger.Module
 import dagger.Provides
@@ -49,50 +51,68 @@ object DatabaseModule {
             DatabaseConfig.databaseName()
         )
             .openHelperFactory(factory)
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+            .fallbackToDestructiveMigration(true)
             .addCallback(DatabaseCallback())
             .build()
     }
 
     @Provides
-    fun provideStoreDao(
-        database: AppDatabase
-    ): StoreDao {
-        return database.storeDao()
-    }
-
-    @Provides
-    fun provideStoreTypeDao(
-        database: AppDatabase
-    ): StoreTypeDao {
+    fun provideStoreTypeDao(database: AppDatabase): StoreTypeDao {
         return database.storeTypeDao()
     }
 
     @Provides
-    fun provideCategoryDao(
-        database: AppDatabase
-    ): CategoryDao {
+    fun provideCategoryDao(database: AppDatabase): CategoryDao {
         return database.categoryDao()
     }
 
     @Provides
-    fun provideSupplierDao(
-        database: AppDatabase
-    ): SupplierDao {
+    fun provideOrganizationDao(database: AppDatabase): OrganizationDao {
+        return database.organizationDao()
+    }
+
+    @Provides
+    fun provideOrganizationMemberDao(database: AppDatabase): OrganizationMemberDao {
+        return database.organizationMemberDao()
+    }
+
+    @Provides
+    fun provideStoreDao(database: AppDatabase): StoreDao {
+        return database.storeDao()
+    }
+
+    @Provides
+    fun provideUserStoreMappingDao(database: AppDatabase): UserStoreMappingDao {
+        return database.userStoreMappingDao()
+    }
+
+    @Provides
+    fun provideSupplierDao(database: AppDatabase): SupplierDao {
         return database.supplierDao()
     }
 
     @Provides
-    fun provideProductDao(
-        database: AppDatabase
-    ): ProductDao {
+    fun provideProductDao(database: AppDatabase): ProductDao {
         return database.productDao()
     }
 
     @Provides
-    fun provideStoreProductMappingDao(
-        database: AppDatabase
-    ): StoreProductMappingDao {
+    fun provideStoreProductMappingDao(database: AppDatabase): StoreProductMappingDao {
         return database.storeProductMappingDao()
+    }
+
+    @Provides
+    fun provideStockMovementDao(database: AppDatabase): StockMovementDao {
+        return database.stockMovementDao()
+    }
+
+    @Provides
+    fun provideSyncCursorDao(database: AppDatabase): SyncCursorDao {
+        return database.syncCursorDao()
+    }
+
+    @Provides
+    fun provideSyncOutboxDao(database: AppDatabase): SyncOutboxDao {
+        return database.syncOutboxDao()
     }
 }

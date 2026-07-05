@@ -6,29 +6,30 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.scalo.stocklify.core.model.enums.RecordStatus
+import com.scalo.stocklify.core.model.enums.SyncStatus
 
 @Entity(
     tableName = "suppliers",
-    indices = [
-        Index(value = ["store_id"])
-    ],
     foreignKeys = [
         ForeignKey(
             entity = StoreEntity::class,
             parentColumns = ["id"],
             childColumns = ["store_id"],
-            onDelete = ForeignKey.RESTRICT,
-            onUpdate = ForeignKey.CASCADE
+            onDelete = ForeignKey.CASCADE
         )
+    ],
+    indices = [
+        Index("store_id")
     ]
 )
 data class SupplierEntity(
 
-    @PrimaryKey(autoGenerate = true)
-    val id: Long = 0,
+    @PrimaryKey
+    @ColumnInfo(name = "id")
+    val id: String,
 
     @ColumnInfo(name = "store_id")
-    val storeId: Long,
+    val storeId: String,
 
     @ColumnInfo(name = "name")
     val name: String,
@@ -39,11 +40,11 @@ data class SupplierEntity(
     @ColumnInfo(name = "phone")
     val phone: String?,
 
-    @ColumnInfo(name = "updated_at")
-    val updatedAt: Long?,
+    @ColumnInfo(name = "email")
+    val email: String?,
 
-    @ColumnInfo(name = "updated_by")
-    val updatedBy: String?,
+    @ColumnInfo(name = "address")
+    val address: String?,
 
     @ColumnInfo(name = "created_at")
     val createdAt: Long,
@@ -51,9 +52,24 @@ data class SupplierEntity(
     @ColumnInfo(name = "created_by")
     val createdBy: String,
 
+    @ColumnInfo(name = "updated_at")
+    val updatedAt: Long?,
+
+    @ColumnInfo(name = "updated_by")
+    val updatedBy: String?,
+
+    @ColumnInfo(name = "deleted_at")
+    val deletedAt: Long?,
+
+    @ColumnInfo(name = "deleted_by")
+    val deletedBy: String?,
+
     @ColumnInfo(name = "status")
     val status: RecordStatus,
 
     @ColumnInfo(name = "version")
-    val version: Long
+    val version: Long,
+
+    @ColumnInfo(name = "sync_status")
+    val syncStatus: SyncStatus = SyncStatus.SYNCED
 )

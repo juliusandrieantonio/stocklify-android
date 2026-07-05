@@ -108,16 +108,16 @@ fun SalesModeFilterSheet(
             ) {
                 StocklifyFilterChip(
                     label = "All",
-                    selected = draft.categoryId == null,
-                    onToggle = { draft = draft.copy(categoryId = null) },
+                    selected = draft.categoryCode == null,
+                    onToggle = { draft = draft.copy(categoryCode = null) },
                     size = StocklifyChipSize.Large,
                 )
                 categories.forEach { category ->
                     StocklifyFilterChip(
                         size = StocklifyChipSize.Large,
                         label = category.name,
-                        selected = draft.categoryId == category.id,
-                        onToggle = { draft = draft.copy(categoryId = category.id) },
+                        selected = draft.categoryCode == category.code,
+                        onToggle = { draft = draft.copy(categoryCode = category.code) },
                     )
                 }
             }

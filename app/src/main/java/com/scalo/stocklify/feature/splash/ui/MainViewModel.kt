@@ -3,6 +3,7 @@ package com.scalo.stocklify.feature.splash.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.scalo.stocklify.core.util.Screen
+import com.scalo.stocklify.feature.auth.domain.repository.AuthRepository
 import com.scalo.stocklify.feature.onboarding.domain.repository.OnboardingRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,7 +13,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val onboardingRepo: OnboardingRepository
+    private val onboardingRepo: OnboardingRepository,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(true)
@@ -28,6 +30,9 @@ class MainViewModel @Inject constructor(
             val hasCompletedOnboarding =
                 onboardingRepo.hasCompletedOnboarding()
 
+            authRepository.awaitInitialization()
+            val isAuthenticated = authRepository.getCurrentUser() != null
+
             val hasStoreCached =
                 onboardingRepo.hasStoreCached()
 
@@ -35,6 +40,9 @@ class MainViewModel @Inject constructor(
 
                 !hasCompletedOnboarding ->
                     Screen.Onboarding.route
+
+                !isAuthenticated ->
+                    Screen.Login.route
 
                 !hasStoreCached ->
                     Screen.CreateJoinStore.route

@@ -81,7 +81,7 @@ import kotlinx.coroutines.withContext
 fun AddEditProductScreen(
     onBack: () -> Unit,
     onSave: () -> Unit,
-    onReviewEditDone: ((index: Int, name: String, price: Double?, categoryId: Long?, stock: Long?, imageUri: Uri?) -> Unit)? = null,
+    onReviewEditDone: ((index: Int, name: String, price: Double?, categoryCode: String?, stock: Int?, imageUri: Uri?) -> Unit)? = null,
     viewModel: AddEditProductViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
@@ -120,7 +120,7 @@ fun AddEditProductScreen(
         when (val state = saveState) {
             is SaveState.Success -> onSave()
             is SaveState.ReviewEditDone -> onReviewEditDone?.invoke(
-                state.index, state.name, state.price, state.categoryId, state.stock, state.imageUri
+                state.index, state.name, state.price, state.categoryCode, state.stock, state.imageUri
             )
             is SaveState.Error -> scope.launch {
                 snackbarHostState.showSnackbar(state.message)

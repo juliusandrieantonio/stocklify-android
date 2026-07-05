@@ -1,6 +1,5 @@
 package com.scalo.stocklify.feature.salesmode.ui
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.scalo.stocklify.core.data.database.dao.CategoryDao
@@ -21,7 +20,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-private const val LOW_STOCK_THRESHOLD = 10L
+private const val LOW_STOCK_THRESHOLD = 10
 
 @OptIn(FlowPreview::class)
 @HiltViewModel
@@ -57,7 +56,7 @@ class SalesModeViewModel @Inject constructor(
     fun onAction(action: SalesModeAction) {
         when (action) {
             SalesModeAction.Refresh -> load()
-            is SalesModeAction.SelectCategory -> selectCategory(action.categoryId)
+            is SalesModeAction.SelectCategory -> selectCategory(action.categoryCode)
             is SalesModeAction.Search -> search(action.query)
             is SalesModeAction.ApplyFilter -> applyFilter(action.filter)
             is SalesModeAction.AddToCart -> addToCart(action.product, action.quantity)
@@ -82,21 +81,19 @@ class SalesModeViewModel @Inject constructor(
                 storeProductMappingDao.getByStoreId(store.id),
             ) { categoryEntities, productEntities, mappingEntities ->
                 val categories = categoryEntities.map { it.toDomain() }
-                val mappings = mappingEntities.map { it.toDomain() }
-                val products = productEntities.map { entity ->
-                    Log.d("SalesMode", "Categories: $categories")
-                    val product = entity.toDomain()
-                    val stock = mappings
-                        .filter { it.productId == product.id }
-                        .sumOf { it.quantity }
+                val productsById = productEntities.associate { it.id to it.toDomain() }
+                val products = mappingEntities.mapNotNull { mappingEntity ->
+                    val mapping = mappingEntity.toDomain()
+                    val product = productsById[mapping.productId] ?: return@mapNotNull null
                     ProductModel(
                         id = product.id,
-                        code = product.code,
+                        storeProductId = mapping.id,
+                        code = mapping.productCode ?: mapping.id,
                         name = product.name,
-                        sellingPrice = product.sellingPrice,
+                        sellingPrice = mapping.sellingPrice,
                         imageUrl = product.imageUrl,
-                        categoryId = product.categoryId,
-                        stock = stock,
+                        categoryCode = mapping.categoryCode,
+                        stock = mapping.quantity,
                     )
                 }
                 Pair(categories, products)
@@ -113,9 +110,9 @@ class SalesModeViewModel @Inject constructor(
         }
     }
 
-    private fun selectCategory(categoryId: Long?) {
+    private fun selectCategory(categoryCode: String?) {
         _state.update {
-            val updated = it.filter.copy(categoryId = categoryId)
+            val updated = it.filter.copy(categoryCode = categoryCode)
             it.copy(
                 filter = updated,
                 products = filterProducts(allProducts, it.searchQuery, updated),
@@ -149,7 +146,7 @@ class SalesModeViewModel @Inject constructor(
         }
     }
 
-    private fun removeFromCart(productId: Long) {
+    private fun removeFromCart(productId: String) {
         _state.update { state ->
             state.copy(cartItems = state.cartItems.filter { it.product.id != productId })
         }
@@ -162,7 +159,7 @@ class SalesModeViewModel @Inject constructor(
     ): List<ProductModel> {
         return products
             .filter { product ->
-                (filter.categoryId == null || product.categoryId == filter.categoryId) &&
+                (filter.categoryCode == null || product.categoryCode == filter.categoryCode) &&
                 (query.isBlank() || product.name.contains(query, ignoreCase = true) || product.code.contains(query, ignoreCase = true)) &&
                 (filter.minPrice == null || product.sellingPrice >= filter.minPrice) &&
                 (filter.maxPrice == null || product.sellingPrice <= filter.maxPrice) &&
@@ -170,7 +167,7 @@ class SalesModeViewModel @Inject constructor(
                     StockStatus.All         -> true
                     StockStatus.InStock     -> product.stock > LOW_STOCK_THRESHOLD
                     StockStatus.LowStock    -> product.stock in 1..LOW_STOCK_THRESHOLD
-                    StockStatus.OutOfStock  -> product.stock == 0L
+                    StockStatus.OutOfStock  -> product.stock == 0
                 }
             }
             .let { list ->

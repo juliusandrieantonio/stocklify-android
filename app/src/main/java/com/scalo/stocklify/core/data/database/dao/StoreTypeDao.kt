@@ -11,13 +11,6 @@ interface StoreTypeDao : BaseDao<StoreTypeEntity> {
     @Query("""
         SELECT *
         FROM store_types
-        WHERE id = :id
-    """)
-    suspend fun getById(id: Long): StoreTypeEntity?
-
-    @Query("""
-        SELECT *
-        FROM store_types
         WHERE code = :code
     """)
     suspend fun getByCode(code: String): StoreTypeEntity?

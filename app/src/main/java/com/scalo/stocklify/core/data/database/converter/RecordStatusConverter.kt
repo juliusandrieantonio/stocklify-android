@@ -6,12 +6,12 @@ import com.scalo.stocklify.core.model.enums.RecordStatus
 class RecordStatusConverter {
 
     @TypeConverter
-    fun fromStatus(status: RecordStatus): Int {
+    fun fromStatus(status: RecordStatus): String {
         return status.value
     }
 
     @TypeConverter
-    fun toStatus(value: Int): RecordStatus {
-        return RecordStatus.Companion.from(value)
+    fun toStatus(value: String): RecordStatus {
+        return RecordStatus.from(value)
     }
 }

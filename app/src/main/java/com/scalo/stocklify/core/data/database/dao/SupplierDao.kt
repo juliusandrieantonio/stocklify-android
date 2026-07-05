@@ -13,7 +13,7 @@ interface SupplierDao : BaseDao<SupplierEntity> {
         FROM suppliers
         WHERE id = :id
     """)
-    suspend fun getById(id: Long): SupplierEntity?
+    suspend fun getById(id: String): SupplierEntity?
 
     @Query("""
         SELECT *
@@ -21,7 +21,7 @@ interface SupplierDao : BaseDao<SupplierEntity> {
         WHERE store_id = :storeId
         ORDER BY name
     """)
-    fun getByStoreId(storeId: Long): Flow<List<SupplierEntity>>
+    fun getByStoreId(storeId: String): Flow<List<SupplierEntity>>
 
     @Query("""
         SELECT *
@@ -31,5 +31,5 @@ interface SupplierDao : BaseDao<SupplierEntity> {
     fun getAll(): Flow<List<SupplierEntity>>
 
     @Query("SELECT COUNT(*) FROM suppliers WHERE store_id = :storeId")
-    suspend fun getCountByStoreId(storeId: Long): Int
+    suspend fun getCountByStoreId(storeId: String): Int
 }

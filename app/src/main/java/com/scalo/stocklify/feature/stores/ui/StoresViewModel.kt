@@ -2,7 +2,6 @@ package com.scalo.stocklify.feature.stores.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.scalo.stocklify.core.model.models.Store
 import com.scalo.stocklify.feature.stores.domain.usecase.CreateStoreUseCase
 import com.scalo.stocklify.feature.stores.domain.usecase.GetStoreTypesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -58,13 +57,11 @@ class StoreViewModel @Inject constructor(
 
             try {
                 val current = _state.value
-                val store = Store(
-                    storeCode = "AUTO-GEN",
-                    name = current.storeName.trim(),
-                    storeTypeId = current.selectedStoreType?.id
-                )
 
-                createStoreUseCase(store)
+                createStoreUseCase(
+                    storeName = current.storeName.trim(),
+                    storeTypeCode = current.selectedStoreType?.code
+                )
 
                 _event.emit(StoreEvent.StoreCreated)
 
