@@ -13,8 +13,6 @@ import javax.inject.Inject
 @HiltAndroidApp
 class StocklifyApp : Application() {
 
-    // Injected as dagger.Lazy so construction (and the passphrase lookup it triggers)
-    // doesn't happen on the main thread during Hilt's Application field injection.
     @Inject
     lateinit var appDatabase: Lazy<AppDatabase>
 
