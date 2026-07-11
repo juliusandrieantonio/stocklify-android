@@ -20,11 +20,6 @@ class StocklifyApp : Application() {
         super.onCreate()
         OpenCVLoader.initLocal()
 
-        // Warm up the encrypted database off the main thread. Without this, the first
-        // screen to touch Room (e.g. Create Store right after "Continue as Guest") can
-        // ANR: DatabaseModule.provideDatabase() runBlocking-s the passphrase lookup, and
-        // if that's the very first access it can run long enough on the main thread to
-        // trip the watchdog.
         CoroutineScope(Dispatchers.IO).launch {
             appDatabase.get()
         }
