@@ -231,8 +231,8 @@ This project is licensed under the MIT License.
 
 ## 👨‍💻 Author
 
-Developed by **SCALO**.
-
+Developed by **Julius Andrie Antonio**.
+Designed by **Rose Ann Guarin**
 Building modern solutions for small businesses through mobile technology and AI.
 
 ---
