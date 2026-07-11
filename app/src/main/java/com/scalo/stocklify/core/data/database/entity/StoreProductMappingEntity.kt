@@ -7,9 +7,10 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.scalo.stocklify.core.model.enums.RecordStatus
 import com.scalo.stocklify.core.model.enums.SyncStatus
+import com.scalo.stocklify.core.util.constants.Tables
 
 @Entity(
-    tableName = "store_product_mapping",
+    tableName = Tables.STORE_PRODUCT_MAPPING,
     foreignKeys = [
         ForeignKey(
             entity = StoreEntity::class,

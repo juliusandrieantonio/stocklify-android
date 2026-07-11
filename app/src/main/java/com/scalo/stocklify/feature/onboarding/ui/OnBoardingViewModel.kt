@@ -4,6 +4,7 @@ import com.scalo.stocklify.R
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.scalo.stocklify.feature.onboarding.domain.usecase.CompleteOnboardingUseCase
+import com.scalo.stocklify.feature.onboarding.domain.usecase.CompleteWelcomeScreenUseCase
 import com.scalo.stocklify.feature.onboarding.model.OnBoardingPage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,7 +16,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class OnboardingViewModel @Inject constructor(
-    private val completeOnboardingUseCase: CompleteOnboardingUseCase
+    private val completeOnboardingUseCase: CompleteOnboardingUseCase,
+    private val completeWelcomeScreenUseCase: CompleteWelcomeScreenUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -50,6 +52,22 @@ class OnboardingViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true) }
 
             completeOnboardingUseCase()
+
+            _uiState.update {
+                it.copy(
+                    isLoading = false,
+                    isCompleted = true
+                )
+            }
+        }
+    }
+
+
+    fun completeWelcomeScreen() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+
+            completeWelcomeScreenUseCase()
 
             _uiState.update {
                 it.copy(

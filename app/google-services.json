@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "574776446500",
+    "project_id": "stocklify-ad2f2",
+    "storage_bucket": "stocklify-ad2f2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:574776446500:android:731beb4b32cdb3a8a3d2b1",
+        "android_client_info": {
+          "package_name": "com.scalo.stocklify.dev"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC-5tkniwigngD9G4bkyipiGQUOSm1_mak"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

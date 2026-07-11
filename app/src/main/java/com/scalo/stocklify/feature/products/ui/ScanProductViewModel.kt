@@ -70,16 +70,29 @@ class ScanProductViewModel @Inject constructor(
         }
     }
 
-    fun updateScannedProduct(index: Int, name: String, price: Double?, category: Category?, stock: Int?, imageUri: Uri?) {
-        val current = scanningState.value as? ScanningState.Success ?: return
-        val updated = current.results.toMutableList()
-        updated[index] = updated[index].copy(
-            productName = name.ifBlank { null },
-            price = price,
-            stock = stock,
-            imageUri = imageUri,
-            matchedCategory = category,
-        )
+    fun upsertScannedResult(index: Int?, name: String, price: Double?, category: Category?, stock: Int?, imageUri: Uri?) {
+        val current = (scanningState.value as? ScanningState.Success)?.results ?: emptyList()
+        val updated = if (index != null && index in current.indices) {
+            current.toMutableList().apply {
+                this[index] = this[index].copy(
+                    productName = name.ifBlank { null },
+                    price = price,
+                    stock = stock,
+                    imageUri = imageUri,
+                    matchedCategory = category,
+                )
+            }
+        } else {
+            current + ScannedProductResult(
+                rawText = "",
+                productName = name.ifBlank { null },
+                price = price,
+                stock = stock,
+                imageUri = imageUri,
+                matchedCategory = category,
+                suggestedProduct = null,
+            )
+        }
         _scanningState.value = ScanningState.Success(updated)
     }
 

@@ -1,6 +1,5 @@
 package com.scalo.stocklify.core.model.models
 
-import com.scalo.stocklify.core.model.enums.MembershipRole
 import com.scalo.stocklify.core.model.enums.RecordStatus
 import com.scalo.stocklify.core.model.enums.SyncStatus
 import java.util.UUID
@@ -9,7 +8,6 @@ data class UserStoreMapping(
     val id: String = UUID.randomUUID().toString(),
     val userId: String,
     val storeId: String,
-    val role: MembershipRole,
     val isDefaultStore: Boolean,
 
     val createdAt: Long = 0,

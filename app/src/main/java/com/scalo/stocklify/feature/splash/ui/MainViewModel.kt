@@ -1,5 +1,6 @@
 package com.scalo.stocklify.feature.splash.ui
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.scalo.stocklify.core.util.Screen
@@ -30,8 +31,14 @@ class MainViewModel @Inject constructor(
             val hasCompletedOnboarding =
                 onboardingRepo.hasCompletedOnboarding()
 
+            val hasCompletedWelcomeScreen =
+                onboardingRepo.hasCompletedWelcomeScreen()
+
             authRepository.awaitInitialization()
             val isAuthenticated = authRepository.getCurrentUser() != null
+
+            val hasOrganizationCached =
+                onboardingRepo.hasOrganizationCached()
 
             val hasStoreCached =
                 onboardingRepo.hasStoreCached()
@@ -41,11 +48,17 @@ class MainViewModel @Inject constructor(
                 !hasCompletedOnboarding ->
                     Screen.Onboarding.route
 
+                !hasCompletedWelcomeScreen ->
+                    Screen.WelcomePage.route
+
                 !isAuthenticated ->
                     Screen.Login.route
 
-                !hasStoreCached ->
-                    Screen.CreateJoinStore.route
+                !hasOrganizationCached ->
+                    Screen.CreateOrganization.route
+
+//                !hasStoreCached ->
+//                    Screen.CreateJoinStore.route
 
                 else ->
                     "home_flow"

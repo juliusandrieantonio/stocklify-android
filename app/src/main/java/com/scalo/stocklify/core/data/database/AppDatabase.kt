@@ -6,6 +6,7 @@ import androidx.room.TypeConverters
 import com.scalo.stocklify.core.data.database.converter.RecordStatusConverter
 import com.scalo.stocklify.core.data.database.converter.SyncStatusConverter
 import com.scalo.stocklify.core.data.database.dao.CategoryDao
+import com.scalo.stocklify.core.data.database.dao.DevToolsDao
 import com.scalo.stocklify.core.data.database.dao.OrganizationDao
 import com.scalo.stocklify.core.data.database.dao.OrganizationMemberDao
 import com.scalo.stocklify.core.data.database.dao.ProductDao
@@ -16,6 +17,7 @@ import com.scalo.stocklify.core.data.database.dao.StoreTypeDao
 import com.scalo.stocklify.core.data.database.dao.SupplierDao
 import com.scalo.stocklify.core.data.database.dao.SyncCursorDao
 import com.scalo.stocklify.core.data.database.dao.SyncOutboxDao
+import com.scalo.stocklify.core.data.database.dao.UserDao
 import com.scalo.stocklify.core.data.database.dao.UserStoreMappingDao
 import com.scalo.stocklify.core.data.database.entity.CategoryEntity
 import com.scalo.stocklify.core.data.database.entity.OrganizationEntity
@@ -28,12 +30,14 @@ import com.scalo.stocklify.core.data.database.entity.StoreTypeEntity
 import com.scalo.stocklify.core.data.database.entity.SupplierEntity
 import com.scalo.stocklify.core.data.database.entity.SyncCursorEntity
 import com.scalo.stocklify.core.data.database.entity.SyncOutboxEntity
+import com.scalo.stocklify.core.data.database.entity.UserEntity
 import com.scalo.stocklify.core.data.database.entity.UserStoreMappingEntity
 
 @Database(
     entities = [
         StoreTypeEntity::class,
         CategoryEntity::class,
+        UserEntity::class,
         OrganizationEntity::class,
         OrganizationMemberEntity::class,
         StoreEntity::class,
@@ -53,6 +57,7 @@ abstract class AppDatabase : RoomDatabase() {
 
     abstract fun storeTypeDao(): StoreTypeDao
     abstract fun categoryDao(): CategoryDao
+    abstract fun userDao(): UserDao
     abstract fun organizationDao(): OrganizationDao
     abstract fun organizationMemberDao(): OrganizationMemberDao
     abstract fun storeDao(): StoreDao
@@ -63,4 +68,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun stockMovementDao(): StockMovementDao
     abstract fun syncCursorDao(): SyncCursorDao
     abstract fun syncOutboxDao(): SyncOutboxDao
+    abstract fun devToolsDao(): DevToolsDao
 }

@@ -1,4 +1,4 @@
-package com.scalo.stocklify.feature.stores.ui
+package com.scalo.stocklify.feature.premium.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
@@ -30,9 +30,9 @@ import com.scalo.stocklify.core.util.IconPosition
 
 
 @Composable
-fun CreateJoinStoreScreen(
-    onCreateStore: () -> Unit,
-    onJoinStore: () -> Unit
+fun CreateJoinOrganizationScreen(
+    onCreateOrganization: () -> Unit,
+    onJoinOrganization: () -> Unit
 ) {
 
     val shape = RoundedCornerShape(StocklifyRadius.s)
@@ -54,13 +54,11 @@ fun CreateJoinStoreScreen(
 
         StocklifyPrimaryButton(
             fullWidth = true,
-            text = "Create Store",
-            onClick = onCreateStore
+            text = "Create Organization",
+            onClick = onCreateOrganization
         )
 
-        JoinStoreSection(shape, onJoinStore)
-
-        InfoNote()
+        JoinOrganizationSection(shape, onJoinOrganization)
     }
 }
 
@@ -95,7 +93,7 @@ private fun HeroImage() {
 }
 
 @Composable
-private fun JoinStoreSection(shape: RoundedCornerShape, onJoinStore: () -> Unit) {
+private fun JoinOrganizationSection(shape: RoundedCornerShape, onJoinOrganization: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -113,35 +111,20 @@ private fun JoinStoreSection(shape: RoundedCornerShape, onJoinStore: () -> Unit)
     ) {
 
         Text(
-            text = "Already have a store invitation code?",
+            text = "Already have an organization invitation code?",
             style = StocklifyTextStyles.subtitleXs,
             color = StocklifyTheme.colors.typography500
         )
 
         Text(
-            text = "Join Existing Store",
+            text = "Join Existing Organization",
             style = StocklifyTextStyles.subtitleXs,
             color = StocklifyTheme.colors.primary600,
             modifier = Modifier.clickable {
-                onJoinStore()
+                onJoinOrganization()
             }
         )
     }
-}
-
-@Composable
-private fun InfoNote() {
-    DrawableText(
-        text = buildAnnotatedString {
-            append("You can create an account later to backup and sync your data.")
-        },
-        painter = painterResource(R.drawable.outlined_info),
-        iconPosition = IconPosition.Start,
-        iconTint = StocklifyTheme.colors.typography100,
-        textStyle = StocklifyTextStyles.subtitleXs,
-        textColor = StocklifyTheme.colors.typography100,
-        spacing = StocklifySpacing.s
-    )
 }
 
 
@@ -150,11 +133,11 @@ private fun InfoNote() {
     showSystemUi = true,
 )
 @Composable
-fun CreateJoinStoreScreenPreview() {
-    CreateJoinStoreScreen(
-        onCreateStore = {
+fun CreateJoinOrganizationScreenPreview() {
+    CreateJoinOrganizationScreen(
+        onCreateOrganization = {
         },
-        onJoinStore = {
+        onJoinOrganization = {
         }
     )
 }

@@ -6,7 +6,7 @@ import java.util.UUID
 
 data class Store(
     val id: String = UUID.randomUUID().toString(),
-    val organizationId: String,
+    val organizationId: String?,
     val storeCode: String,
     val storeTypeCode: String,
     val name: String,

@@ -2,9 +2,10 @@ package com.scalo.stocklify.core.data.database.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import com.scalo.stocklify.core.util.constants.Tables
 
 @Entity(
-    tableName = "sync_cursor",
+    tableName = Tables.SYNC_CURSOR,
     primaryKeys = ["table_name", "store_id", "organization_id"]
 )
 data class SyncCursorEntity(

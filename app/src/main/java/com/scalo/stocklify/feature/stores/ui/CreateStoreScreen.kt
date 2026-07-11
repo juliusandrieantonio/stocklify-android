@@ -9,6 +9,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,6 +29,7 @@ import com.scalo.stocklify.core.model.models.StoreType
 import com.scalo.stocklify.core.ui.components.topbar.StocklifyTopBar
 import com.scalo.stocklify.core.ui.theme.*
 import com.scalo.stocklify.core.util.IconPosition
+import kotlinx.coroutines.launch
 
 @Composable
 fun CreateStoreScreen(
@@ -37,18 +40,30 @@ fun CreateStoreScreen(
     val state by viewModel.state.collectAsState()
     val shape = RoundedCornerShape(StocklifyRadius.s)
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
     LaunchedEffect(Unit) {
         viewModel.event.collect { event ->
             when (event) {
                 StoreEvent.StoreCreated -> onCreated()
-                is StoreEvent.ShowError -> {
-                    // TODO: SHOW ERROR MESSAGE
+                is StoreEvent.ShowError -> scope.launch {
+                    snackbarHostState.showSnackbar(event.message)
                 }
             }
         }
     }
 
     Scaffold(
+        snackbarHost = {
+            SnackbarHost(snackbarHostState) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = StocklifyTheme.colors.error,
+                    contentColor = StocklifyStaticColors.white,
+                )
+            }
+        },
         topBar = {
             StocklifyTopBar(
                 navigationIcon = {

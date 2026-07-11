@@ -52,7 +52,9 @@ class LoginViewModel @Inject constructor(
             try {
                 val current = _state.value
                 authRepository.signIn(current.email.trim(), current.password)
-                _event.emit(LoginEvent.LoggedIn(onboardingRepository.hasStoreCached()))
+                _event.emit(
+                    LoginEvent.LoggedIn()
+                )
             } catch (e: Exception) {
                 _event.emit(LoginEvent.ShowError(e.message ?: "Unable to sign in"))
             } finally {

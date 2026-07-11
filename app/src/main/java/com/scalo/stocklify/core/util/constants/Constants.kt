@@ -8,6 +8,6 @@ object Constants {
     const val READ_TIMEOUT = 30L
 
     // Pagination
-    const val PAGE_SIZE = 20
+    const val PAGE_SIZE = 500
     const val INITIAL_PAGE = 1
 }

@@ -6,6 +6,7 @@ import com.scalo.stocklify.core.config.DatabaseConfig
 import com.scalo.stocklify.core.data.database.AppDatabase
 import com.scalo.stocklify.core.data.database.callback.DatabaseCallback
 import com.scalo.stocklify.core.data.database.dao.CategoryDao
+import com.scalo.stocklify.core.data.database.dao.DevToolsDao
 import com.scalo.stocklify.core.data.database.dao.OrganizationDao
 import com.scalo.stocklify.core.data.database.dao.OrganizationMemberDao
 import com.scalo.stocklify.core.data.database.dao.ProductDao
@@ -16,6 +17,7 @@ import com.scalo.stocklify.core.data.database.dao.StoreTypeDao
 import com.scalo.stocklify.core.data.database.dao.SupplierDao
 import com.scalo.stocklify.core.data.database.dao.SyncCursorDao
 import com.scalo.stocklify.core.data.database.dao.SyncOutboxDao
+import com.scalo.stocklify.core.data.database.dao.UserDao
 import com.scalo.stocklify.core.data.database.dao.UserStoreMappingDao
 import com.scalo.stocklify.core.data.database.util.DatabaseKeyManager
 import dagger.Module
@@ -67,6 +69,11 @@ object DatabaseModule {
     }
 
     @Provides
+    fun provideUserDao(database: AppDatabase): UserDao {
+        return database.userDao()
+    }
+
+    @Provides
     fun provideOrganizationDao(database: AppDatabase): OrganizationDao {
         return database.organizationDao()
     }
@@ -114,5 +121,10 @@ object DatabaseModule {
     @Provides
     fun provideSyncOutboxDao(database: AppDatabase): SyncOutboxDao {
         return database.syncOutboxDao()
+    }
+
+    @Provides
+    fun provideDevToolsDao(database: AppDatabase): DevToolsDao {
+        return database.devToolsDao()
     }
 }

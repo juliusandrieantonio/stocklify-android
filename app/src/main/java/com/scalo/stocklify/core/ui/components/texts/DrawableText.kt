@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -37,7 +38,8 @@ fun DrawableText(
     iconBackgroundColor: Color? = null,
     textColor: Color = LocalContentColor.current,
     textStyle: TextStyle = LocalTextStyle.current,
-    iconPosition: IconPosition = IconPosition.Start
+    iconPosition: IconPosition = IconPosition.Start,
+    fullWidth: Boolean = false,
 ) {
 
     @Composable
@@ -85,7 +87,13 @@ fun DrawableText(
         )
 
         if (iconPosition == IconPosition.End) {
-            Spacer(Modifier.width(spacing))
+            Spacer(
+                if (fullWidth) {
+                    Modifier.weight(1f)
+                } else {
+                    Modifier.width(spacing)
+                }
+            )
             DrawableIcon()
         }
     }

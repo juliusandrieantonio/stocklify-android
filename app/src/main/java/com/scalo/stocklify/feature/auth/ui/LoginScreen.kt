@@ -39,7 +39,7 @@ import com.scalo.stocklify.core.ui.theme.StocklifyTheme
 
 @Composable
 fun LoginScreen(
-    onLoggedIn: (hasStoreCached: Boolean) -> Unit,
+    onLoggedIn: () -> Unit,
     onRegister: () -> Unit,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
@@ -48,7 +48,7 @@ fun LoginScreen(
     LaunchedEffect(Unit) {
         viewModel.event.collect { event ->
             when (event) {
-                is LoginEvent.LoggedIn -> onLoggedIn(event.hasStoreCached)
+                is LoginEvent.LoggedIn -> onLoggedIn()
                 is LoginEvent.ShowError -> {
                     // TODO: SHOW ERROR MESSAGE
                 }
@@ -160,7 +160,7 @@ private fun HeaderSection() {
 @Composable
 fun LoginScreenPreview() {
     LoginScreen(
-        onLoggedIn = {  },
+        onLoggedIn = {},
         onRegister = {}
     )
 }

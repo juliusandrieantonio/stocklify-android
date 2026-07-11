@@ -7,7 +7,7 @@ interface AuthRepository {
 
     suspend fun awaitInitialization()
 
-    suspend fun signUp(email: String, password: String): AuthUser
+    suspend fun signUp(email: String, password: String, metadata: Map<String, String?> = emptyMap()): AuthUser
 
     suspend fun signIn(email: String, password: String): AuthUser
 

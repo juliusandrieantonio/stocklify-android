@@ -2,22 +2,19 @@ package com.scalo.stocklify.core.data.database.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
-import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.scalo.stocklify.core.model.enums.RecordStatus
 import com.scalo.stocklify.core.model.enums.SyncStatus
+import com.scalo.stocklify.core.util.constants.Tables
 
+/**
+ * No FK to OrganizationEntity(id) on purpose: the ORGANIZATION pull phase fetches
+ * memberships before organizations (it needs membership rows to know which org ids
+ * to fetch), so a member row can legitimately land locally before its parent org row.
+ */
 @Entity(
-    tableName = "organization_members",
-    foreignKeys = [
-        ForeignKey(
-            entity = OrganizationEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["organization_id"],
-            onDelete = ForeignKey.CASCADE
-        )
-    ],
+    tableName = Tables.ORGANIZATION_MEMBERS,
     indices = [
         Index("organization_id"),
         Index("user_id")

@@ -31,4 +31,11 @@ interface StoreDao : BaseDao<StoreEntity> {
 
     @Query("SELECT COUNT(*) FROM stores")
     suspend fun getStoreCount(): Int
+
+    @Query("""
+        SELECT id
+        FROM stores
+        WHERE organization_id IN (:organizationIds)
+    """)
+    suspend fun getIdsByOrganizationIds(organizationIds: List<String>): List<String>
 }

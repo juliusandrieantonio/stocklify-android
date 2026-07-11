@@ -7,9 +7,10 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.scalo.stocklify.core.model.enums.RecordStatus
 import com.scalo.stocklify.core.model.enums.SyncStatus
+import com.scalo.stocklify.core.util.constants.Tables
 
 @Entity(
-    tableName = "products",
+    tableName = Tables.PRODUCTS,
     foreignKeys = [
         ForeignKey(
             entity = OrganizationEntity::class,
@@ -29,7 +30,7 @@ data class ProductEntity(
     val id: String,
 
     @ColumnInfo(name = "organization_id")
-    val organizationId: String,
+    val organizationId: String? = null,
 
     @ColumnInfo(name = "name")
     val name: String,

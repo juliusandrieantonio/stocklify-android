@@ -14,4 +14,11 @@ interface OrganizationMemberDao : BaseDao<OrganizationMemberEntity> {
         LIMIT 1
     """)
     suspend fun getByUserId(userId: String): OrganizationMemberEntity?
+
+    @Query("""
+        SELECT *
+        FROM organization_members
+        WHERE user_id = :userId
+    """)
+    suspend fun getAllByUserId(userId: String): List<OrganizationMemberEntity>
 }
