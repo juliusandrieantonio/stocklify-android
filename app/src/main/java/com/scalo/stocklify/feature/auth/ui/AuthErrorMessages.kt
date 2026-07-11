@@ -8,10 +8,6 @@ private const val GENERIC_ERROR = "Something went wrong. Please try again."
 private const val NETWORK_ERROR = "Unable to connect. Please check your internet connection and try again."
 private const val RATE_LIMIT_ERROR = "Too many attempts. Please wait a moment and try again."
 
-/**
- * Deliberately vague for credential-related failures so a caller can't use the message
- * to enumerate whether an email is registered.
- */
 fun Throwable.toLoginErrorMessage(): String = when {
     this is AuthRestException -> when (errorCode) {
         AuthErrorCode.InvalidCredentials,
