@@ -36,6 +36,8 @@ class MainViewModel @Inject constructor(
 
             authRepository.awaitInitialization()
             val isAuthenticated = authRepository.getCurrentUser() != null
+            val currentUser = if (isAuthenticated) authRepository.refreshCurrentUser() else null
+            val isEmailVerified = currentUser?.isEmailVerified == true
 
             val hasOrganizationCached =
                 onboardingRepo.hasOrganizationCached()
@@ -53,6 +55,9 @@ class MainViewModel @Inject constructor(
 
                 !isAuthenticated ->
                     Screen.Login.route
+
+                !isEmailVerified ->
+                    Screen.VerifyEmail.route
 
                 !hasOrganizationCached ->
                     Screen.CreateOrganization.route

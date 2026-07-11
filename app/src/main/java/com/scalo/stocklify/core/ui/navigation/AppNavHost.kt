@@ -15,6 +15,7 @@ import androidx.navigation.navArgument
 import com.scalo.stocklify.core.util.Screen
 import com.scalo.stocklify.feature.auth.ui.LoginScreen
 import com.scalo.stocklify.feature.auth.ui.RegisterScreen
+import com.scalo.stocklify.feature.auth.ui.VerifyEmailScreen
 import com.scalo.stocklify.feature.devtools.ui.DatabaseViewerScreen
 import com.scalo.stocklify.feature.onboarding.ui.WelcomeScreen
 import com.scalo.stocklify.feature.preparing.ui.PreparingWorkScreen
@@ -77,13 +78,29 @@ fun AppNavHost(
 
         composable(Screen.Login.route) {
             LoginScreen(
-                onLoggedIn = {
-                    navController.navigate(Screen.PreparingWork.route) {
+                onLoggedIn = { isEmailVerified ->
+                    val destination = if (isEmailVerified) Screen.PreparingWork.route else Screen.VerifyEmail.route
+                    navController.navigate(destination) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
                 },
                 onRegister = {
                     navController.navigate(Screen.Register.route)
+                }
+            )
+        }
+
+        composable(Screen.VerifyEmail.route) {
+            VerifyEmailScreen(
+                onVerified = {
+                    navController.navigate(Screen.PreparingWork.route) {
+                        popUpTo(Screen.VerifyEmail.route) { inclusive = true }
+                    }
+                },
+                onSignOut = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
                 }
             )
         }
@@ -107,7 +124,7 @@ fun AppNavHost(
             RegisterScreen(
                 onBack = { navController.popBackStack() },
                 onRegistered = {
-                    navController.navigate(Screen.CreateJoinOrganization.route) {
+                    navController.navigate(Screen.VerifyEmail.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
                 }

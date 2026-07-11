@@ -4,6 +4,7 @@ import android.util.Log
 import com.scalo.stocklify.core.model.models.AuthUser
 import com.scalo.stocklify.feature.auth.domain.repository.AuthRepository
 import io.github.jan.supabase.auth.Auth
+import io.github.jan.supabase.auth.OtpType
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.auth.status.SessionStatus
 import io.github.jan.supabase.auth.user.UserInfo
@@ -70,9 +71,26 @@ class AuthRepositoryImpl @Inject constructor(
         return auth.currentUserOrNull()?.toDomain()
     }
 
+    override suspend fun refreshCurrentUser(): AuthUser? {
+        return try {
+            auth.retrieveUserForCurrentSession(updateSession = true).toDomain()
+        } catch (e: Exception) {
+            Log.e("RefreshUser", "Failed to refresh current user", e)
+            getCurrentUser()
+        }
+    }
+
+    override suspend fun resendVerificationEmail(email: String) {
+        auth.resendEmail(OtpType.Email.SIGNUP, email)
+    }
+
     override fun isAuthenticated(): Flow<Boolean> {
         return auth.sessionStatus.map { it is SessionStatus.Authenticated }
     }
 }
 
-private fun UserInfo.toDomain() = AuthUser(id = id, email = email)
+private fun UserInfo.toDomain() = AuthUser(
+    id = id,
+    email = email,
+    isEmailVerified = emailConfirmedAt != null
+)

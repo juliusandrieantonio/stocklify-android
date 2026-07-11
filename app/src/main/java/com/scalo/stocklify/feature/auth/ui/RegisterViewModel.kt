@@ -83,7 +83,7 @@ class RegisterViewModel @Inject constructor(
                 authRepository.signUp(current.email.trim(), current.password, metadata)
                 _event.emit(RegisterEvent.Registered)
             } catch (e: Exception) {
-                _event.emit(RegisterEvent.ShowError(e.message ?: "Unable to sign up"))
+                _event.emit(RegisterEvent.ShowError(e.toRegisterErrorMessage()))
             } finally {
                 _state.update { it.copy(isLoading = false) }
             }

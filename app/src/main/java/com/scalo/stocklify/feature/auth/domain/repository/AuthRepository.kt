@@ -17,5 +17,9 @@ interface AuthRepository {
 
     fun getCurrentUser(): AuthUser?
 
+    suspend fun refreshCurrentUser(): AuthUser?
+
+    suspend fun resendVerificationEmail(email: String)
+
     fun isAuthenticated(): Flow<Boolean>
 }

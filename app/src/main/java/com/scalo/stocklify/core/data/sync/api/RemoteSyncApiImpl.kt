@@ -74,7 +74,6 @@ class RemoteSyncApiImpl @Inject constructor(
         postgrest.from(Tables.ORGANIZATIONS)
             .select {
                 filter {
-                    eq("created_by", userId)
                     gt("version", sinceVersion)
                 }
                 order("version", Order.ASCENDING)

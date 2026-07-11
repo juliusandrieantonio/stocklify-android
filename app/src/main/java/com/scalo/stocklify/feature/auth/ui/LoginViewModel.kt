@@ -51,12 +51,12 @@ class LoginViewModel @Inject constructor(
 
             try {
                 val current = _state.value
-                authRepository.signIn(current.email.trim(), current.password)
+                val user = authRepository.signIn(current.email.trim(), current.password)
                 _event.emit(
-                    LoginEvent.LoggedIn()
+                    LoginEvent.LoggedIn(isEmailVerified = user.isEmailVerified)
                 )
             } catch (e: Exception) {
-                _event.emit(LoginEvent.ShowError(e.message ?: "Unable to sign in"))
+                _event.emit(LoginEvent.ShowError(e.toLoginErrorMessage()))
             } finally {
                 _state.update { it.copy(isLoading = false) }
             }

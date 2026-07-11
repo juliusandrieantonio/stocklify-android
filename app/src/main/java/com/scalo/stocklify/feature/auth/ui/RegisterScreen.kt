@@ -13,6 +13,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -20,6 +23,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,8 +39,10 @@ import com.scalo.stocklify.core.ui.components.texts.StocklifyTextField
 import com.scalo.stocklify.core.ui.components.topbar.StocklifyTopBar
 import com.scalo.stocklify.core.ui.theme.StocklifySize
 import com.scalo.stocklify.core.ui.theme.StocklifySpacing
+import com.scalo.stocklify.core.ui.theme.StocklifyStaticColors
 import com.scalo.stocklify.core.ui.theme.StocklifyTextStyles
 import com.scalo.stocklify.core.ui.theme.StocklifyTheme
+import kotlinx.coroutines.launch
 
 @Composable
 fun RegisterScreen(
@@ -47,12 +53,15 @@ fun RegisterScreen(
     val state by viewModel.state.collectAsState()
     val scrollState = rememberScrollState()
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
     LaunchedEffect(Unit) {
         viewModel.event.collect { event ->
             when (event) {
                 RegisterEvent.Registered -> onRegistered()
-                is RegisterEvent.ShowError -> {
-                    // TODO: SHOW ERROR MESSAGE
+                is RegisterEvent.ShowError -> scope.launch {
+                    snackbarHostState.showSnackbar(event.message)
                 }
             }
         }
@@ -71,6 +80,15 @@ fun RegisterScreen(
                     }
                 }
             )
+        },
+        snackbarHost = {
+            SnackbarHost(snackbarHostState) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = StocklifyTheme.colors.error,
+                    contentColor = StocklifyStaticColors.white,
+                )
+            }
         }
     ) { padding ->
 
