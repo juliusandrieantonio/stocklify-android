@@ -1,14 +1,20 @@
-package com.scalo.stocklify.feature.stores.ui
+package com.scalo.stocklify.feature.premium.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.scalo.stocklify.R
 import com.scalo.stocklify.core.ui.components.buttons.StocklifyPrimaryButton
 import com.scalo.stocklify.core.ui.components.texts.DrawableText
@@ -16,14 +22,41 @@ import com.scalo.stocklify.core.ui.components.texts.StocklifyTextField
 import com.scalo.stocklify.core.ui.components.topbar.StocklifyTopBar
 import com.scalo.stocklify.core.ui.theme.*
 import com.scalo.stocklify.core.util.IconPosition
+import kotlinx.coroutines.launch
 
 @Composable
-fun JoinStoreScreen(
+fun CreateOrganizationScreen(
     onBack: () -> Unit,
-    onJoined: () -> Unit
+    onCreateOrganization: () -> Unit,
+    viewModel: PremiumViewModel = hiltViewModel()
 ) {
+    val state by viewModel.state.collectAsState()
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        viewModel.event.collect { event ->
+            when (event) {
+                OrganizationEvent.OrganizationCreated -> onCreateOrganization()
+                is OrganizationEvent.ShowError -> scope.launch {
+                    snackbarHostState.showSnackbar(event.message)
+                }
+                else -> Unit
+            }
+        }
+    }
 
     Scaffold(
+        snackbarHost = {
+            SnackbarHost(snackbarHostState) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = StocklifyTheme.colors.error,
+                    contentColor = StocklifyStaticColors.white,
+                )
+            }
+        },
         topBar = {
             StocklifyTopBar(
                 navigationIcon = {
@@ -54,17 +87,25 @@ fun JoinStoreScreen(
 
             HeroImage()
 
-            DescriptionText()
+            OrganizationNameField(
+                value = state.organizationName,
+                error = state.organizationNameError,
+                onValueChange = {
+                    viewModel.onAction(OrganizationAction.OrganizationNameChanged(it))
+                }
+            )
 
             Spacer(modifier = Modifier.height(StocklifySize.smallest))
 
-            InvitationField()
-
-            Spacer(modifier = Modifier.height(StocklifySize.smallest))
-
-            JoinButton(onJoined)
-
-            InfoNote()
+            StocklifyPrimaryButton(
+                fullWidth = true,
+                text = "Create Organization",
+                enabled = !state.isLoading,
+                isLoading = state.isLoading,
+                onClick = {
+                    viewModel.onAction(OrganizationAction.CreateOrganization)
+                }
+            )
         }
     }
 }
@@ -72,7 +113,7 @@ fun JoinStoreScreen(
 @Composable
 private fun HeaderSection() {
     Text(
-        text = "Join Existing Store",
+        text = "Create Organization",
         style = StocklifyTextStyles.heading4,
         color = StocklifyTheme.colors.primary700
     )
@@ -87,30 +128,18 @@ private fun HeroImage() {
 }
 
 @Composable
-private fun DescriptionText() {
-    Text(
-        text = "Enter the invitation code from your store owner.",
-        style = StocklifyTextStyles.subtitleXs,
-        color = StocklifyTheme.colors.typography400
-    )
-}
-
-@Composable
-private fun InvitationField() {
+private fun OrganizationNameField(
+    value: String,
+    error: String?,
+    onValueChange: (String) -> Unit
+) {
     StocklifyTextField(
-        value = "",
-        onValueChange = {},
-        label = "Invitation Code",
-        placeholder = "Enter code"
-    )
-}
-
-@Composable
-private fun JoinButton(onJoined: () -> Unit) {
-    StocklifyPrimaryButton(
-        fullWidth = true,
-        text = "Join Store",
-        onClick = onJoined
+        value = value,
+        onValueChange = onValueChange,
+        label = "Organization Name",
+        placeholder = "Enter Organization Name",
+        isError = error != null,
+        supportingText = error
     )
 }
 
@@ -135,11 +164,14 @@ private fun InfoNote() {
     showSystemUi = true,
 )
 @Composable
-fun JoinStoreScreenPreview() {
-    JoinStoreScreen(
-        onBack = {  },
-        onJoined = {
+fun CreateOrganizationScreenPreview() {
+    StocklifyTheme {
+        CreateOrganizationScreen(
+            onBack = {  },
+            onCreateOrganization = {
 
-        }
-    )
+            }
+        )
+    }
+
 }

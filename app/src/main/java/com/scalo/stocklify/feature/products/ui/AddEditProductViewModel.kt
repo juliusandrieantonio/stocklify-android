@@ -2,30 +2,21 @@ package com.scalo.stocklify.feature.products.ui
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import androidx.core.content.FileProvider
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.scalo.stocklify.core.data.database.dao.CategoryDao
-import com.scalo.stocklify.core.data.database.dao.ProductDao
-import com.scalo.stocklify.core.data.database.dao.StockMovementDao
-import com.scalo.stocklify.core.data.database.dao.StoreDao
-import com.scalo.stocklify.core.data.database.dao.StoreProductMappingDao
 import com.scalo.stocklify.core.data.database.mapper.toDomain
-import com.scalo.stocklify.core.data.database.mapper.toEntity
-import com.scalo.stocklify.core.model.enums.StockMovementReason
 import com.scalo.stocklify.core.model.models.Category
-import com.scalo.stocklify.core.model.models.Product
-import com.scalo.stocklify.core.model.models.StockMovement
-import com.scalo.stocklify.core.model.models.StoreProductMapping
+import com.scalo.stocklify.feature.products.model.ManualProductDraft
+import com.scalo.stocklify.feature.products.model.ScannedProductResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -34,21 +25,22 @@ import javax.inject.Inject
 
 data class AddProductFormState(
     val name: String = "",
-    val price: String = "",
+    val sellingPrice: String = "",
+    val costPrice: String = "",
     val stock: String = "",
     val selectedCategory: Category? = null,
     val imageUri: Uri? = null,
     val nameError: String? = null,
-    val priceError: String? = null,
+    val costPriceError: String? = null,
+    val sellingPriceError: String? = null,
     val stockError: String? = null,
 )
 
 sealed class SaveState {
     object Idle : SaveState()
-    object Loading : SaveState()
-    object Success : SaveState()
+    data class Staged(val index: Int?, val draft: ManualProductDraft) : SaveState()
     data class ReviewEditDone(
-        val index: Int,
+        val index: Int?,
         val name: String,
         val price: Double?,
         val categoryCode: String?,
@@ -58,14 +50,15 @@ sealed class SaveState {
     data class Error(val message: String) : SaveState()
 }
 
+sealed class EditTarget {
+    data class ManualDraft(val index: Int, val draft: ManualProductDraft) : EditTarget()
+    data class ScanReview(val index: Int?, val result: ScannedProductResult?) : EditTarget()
+}
+
 @HiltViewModel
 class AddEditProductViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val productDao: ProductDao,
     private val categoryDao: CategoryDao,
-    private val storeDao: StoreDao,
-    private val storeProductMappingDao: StoreProductMappingDao,
-    private val stockMovementDao: StockMovementDao,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -74,7 +67,9 @@ class AddEditProductViewModel @Inject constructor(
             name = savedStateHandle.get<String>("name")
                 ?.let { Uri.decode(it) }
                 ?.takeIf { it.isNotEmpty() } ?: "",
-            price = savedStateHandle.get<String>("price")
+            sellingPrice = savedStateHandle.get<String>("price")
+                ?.takeIf { it.isNotEmpty() } ?: "",
+            costPrice = savedStateHandle.get<String>("price")
                 ?.takeIf { it.isNotEmpty() } ?: "",
             stock = savedStateHandle.get<String>("stock")
                 ?.takeIf { it.isNotEmpty() } ?: "",
@@ -94,14 +89,45 @@ class AddEditProductViewModel @Inject constructor(
     private val preFilledCategoryCode: String? = savedStateHandle.get<String>("categoryCode")
         ?.takeIf { it.isNotBlank() }
 
-    // Non-null when launched from ReviewImportedProductScreen to edit a scanned product
-    val reviewIndex: Int? = savedStateHandle.get<String>("reviewIndex")?.toIntOrNull()
+    // Non-null/true when editing or appending a scanned product from ReviewImportedProductScreen
+    private var reviewIndex: Int? = savedStateHandle.get<String>("reviewIndex")?.toIntOrNull()
+    private var isScanReview: Boolean = reviewIndex != null
 
     // Holds the URI created for the pending camera capture
     private var pendingCameraUri: Uri? = null
 
+    // Non-null when editing an already-staged manual draft from ReviewManualProductScreen
+    private var manualDraftIndex: Int? = null
+
     init {
         loadCategories()
+    }
+
+    fun loadDraft(index: Int, draft: ManualProductDraft) {
+        manualDraftIndex = index
+        _formState.value = _formState.value.copy(
+            name = draft.name,
+            sellingPrice = draft.sellingPrice?.toString() ?: "",
+            costPrice = draft.costPrice?.toString() ?: "",
+            stock = draft.stock?.toString() ?: "",
+            selectedCategory = draft.category,
+            imageUri = draft.imageUri,
+        )
+    }
+
+    fun loadScanReviewItem(index: Int?, result: ScannedProductResult?) {
+        isScanReview = true
+        reviewIndex = index
+        if (result != null) {
+            _formState.value = _formState.value.copy(
+                name = result.productName ?: "",
+                sellingPrice = result.price?.toString() ?: "",
+                costPrice = result.price?.toString() ?: "",
+                stock = result.stock?.toString() ?: "",
+                selectedCategory = result.matchedCategory,
+                imageUri = result.imageUri,
+            )
+        }
     }
 
     private fun loadCategories() {
@@ -153,8 +179,12 @@ class AddEditProductViewModel @Inject constructor(
         _formState.value = _formState.value.copy(name = value, nameError = null)
     }
 
-    fun onPriceChange(value: String) {
-        _formState.value = _formState.value.copy(price = value, priceError = null)
+    fun onSellingPriceChange(value: String) {
+        _formState.value = _formState.value.copy(sellingPrice = value, sellingPriceError = null)
+    }
+
+    fun onCostPriceChange(value: String) {
+        _formState.value = _formState.value.copy(costPrice = value, costPriceError = null)
     }
 
     fun onStockChange(value: String) {
@@ -168,27 +198,31 @@ class AddEditProductViewModel @Inject constructor(
     fun save() {
         val form = _formState.value
         val nameError = if (form.name.isBlank()) "Product name is required" else null
-        val priceError = if (form.price.isNotBlank() &&
-            (form.price.toDoubleOrNull() == null || form.price.toDouble() < 0)) "Enter a valid price"
+        val sellingPriceError = if (form.sellingPrice.isBlank()) "Selling price is required"
+        else if (form.sellingPrice.toDoubleOrNull() == null || form.sellingPrice.toDouble() < 0) "Enter a valid price"
+        else null
+        val costPriceError = if (form.costPrice.isBlank()) "Cost price is required"
+        else if (form.costPrice.toDoubleOrNull() == null || form.costPrice.toDouble() < 0) "Enter a valid price"
         else null
         val stockError = if (form.stock.isBlank()) "Stock quantity is required"
         else if (form.stock.toIntOrNull() == null || form.stock.toInt() < 0) "Enter a valid quantity"
         else null
 
-        if (nameError != null || priceError != null || stockError != null) {
+        if (nameError != null || sellingPriceError != null || costPriceError != null || stockError != null) {
             _formState.value = form.copy(
                 nameError = nameError,
-                priceError = priceError,
+                sellingPriceError = sellingPriceError,
+                costPriceError = costPriceError,
                 stockError = stockError,
             )
             return
         }
 
-        if (reviewIndex != null) {
+        if (isScanReview) {
             _saveState.value = SaveState.ReviewEditDone(
                 index = reviewIndex,
                 name = form.name.trim(),
-                price = form.price.toDoubleOrNull(),
+                price = form.sellingPrice.toDoubleOrNull(),
                 categoryCode = form.selectedCategory?.code,
                 stock = form.stock.toIntOrNull(),
                 imageUri = form.imageUri,
@@ -196,54 +230,16 @@ class AddEditProductViewModel @Inject constructor(
             return
         }
 
-        viewModelScope.launch {
-            _saveState.value = SaveState.Loading
-            try {
-                val store = storeDao.getAll().first().firstOrNull()
-                    ?: throw IllegalStateException("No store found")
-
-                val categoryCode = form.selectedCategory?.code
-                    ?: throw IllegalStateException("No category selected")
-
-                val now = System.currentTimeMillis()
-
-                val product = Product(
-                    organizationId = store.organizationId,
-                    name = form.name.trim(),
-                    imageUrl = form.imageUri?.toString(),
-                    createdAt = now,
-                )
-                productDao.insert(product.toEntity())
-
-                val mapping = StoreProductMapping(
-                    storeId = store.id,
-                    productId = product.id,
-                    categoryCode = categoryCode,
-                    sellingPrice = form.price.toDoubleOrNull() ?: 0.0,
-                    costPrice = form.price.toDoubleOrNull() ?: 0.0,
-                    quantity = 0,
-                    createdAt = now,
-                )
-                storeProductMappingDao.insert(mapping.toEntity())
-
-                stockMovementDao.insert(
-                    StockMovement(
-                        storeProductId = mapping.id,
-                        quantity = form.stock.toInt(),
-                        reason = StockMovementReason.INITIAL_STOCK,
-                        createdAt = now,
-                    ).toEntity()
-                )
-
-                _saveState.value = SaveState.Success
-            } catch (e: Exception) {
-                Log.e(TAG, "Save product failed", e)
-                _saveState.value = SaveState.Error(e.message ?: "Save failed")
-            }
-        }
-    }
-
-    companion object {
-        private const val TAG = "AddEditProductViewModel"
+        _saveState.value = SaveState.Staged(
+            index = manualDraftIndex,
+            draft = ManualProductDraft(
+                name = form.name.trim(),
+                sellingPrice = form.sellingPrice.toDoubleOrNull(),
+                costPrice = form.costPrice.toDoubleOrNull(),
+                stock = form.stock.toIntOrNull(),
+                category = form.selectedCategory,
+                imageUri = form.imageUri,
+            )
+        )
     }
 }

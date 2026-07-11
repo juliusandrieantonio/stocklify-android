@@ -2,6 +2,8 @@ package com.scalo.stocklify.feature.profile.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.scalo.stocklify.core.data.database.dao.OrganizationMemberDao
+import com.scalo.stocklify.core.model.enums.MembershipRole
 import com.scalo.stocklify.feature.auth.domain.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -14,7 +16,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val organizationMemberDao: OrganizationMemberDao
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ProfileUiState())
@@ -22,6 +25,10 @@ class ProfileViewModel @Inject constructor(
 
     private val _event = MutableSharedFlow<ProfileEvent>()
     val event = _event.asSharedFlow()
+
+    init {
+        refresh()
+    }
 
     fun onAction(action: ProfileAction) {
         when (action) {
@@ -31,9 +38,18 @@ class ProfileViewModel @Inject constructor(
     }
 
     private fun refresh() {
-        _state.update { it.copy(isLoading = true, error = null) }
-        // TODO: load profile data
-        _state.update { it.copy(isLoading = false) }
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true, error = null) }
+
+            val user = authRepository.getCurrentUser()
+            val role = user?.let {
+                organizationMemberDao.getByUserId(it.id)?.role?.let(MembershipRole::from)
+            }
+
+            _state.update {
+                it.copy(isLoading = false, email = user?.email, membershipRole = role)
+            }
+        }
     }
 
     private fun signOut() {

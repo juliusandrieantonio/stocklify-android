@@ -7,13 +7,15 @@ import androidx.datastore.preferences.core.edit
 import com.scalo.stocklify.core.data.database.dao.OrganizationDao
 import com.scalo.stocklify.core.data.database.dao.OrganizationMemberDao
 import com.scalo.stocklify.core.data.database.dao.UserStoreMappingDao
+import com.scalo.stocklify.core.data.database.mapper.toDto
 import com.scalo.stocklify.core.data.database.mapper.toEntity
-import com.scalo.stocklify.core.model.enums.MembershipRole
+import com.scalo.stocklify.core.data.sync.SyncOutboxWriter
 import com.scalo.stocklify.core.model.models.Organization
 import com.scalo.stocklify.core.model.models.OrganizationMember
 import com.scalo.stocklify.core.model.models.Store
 import com.scalo.stocklify.core.model.models.UserStoreMapping
 import com.scalo.stocklify.core.util.constants.ConstantPreferences
+import com.scalo.stocklify.core.util.constants.Tables
 import com.scalo.stocklify.feature.auth.domain.repository.AuthRepository
 import com.scalo.stocklify.feature.stores.domain.repository.StoreRepository
 import java.util.UUID
@@ -21,10 +23,10 @@ import javax.inject.Inject
 
 class CreateStoreUseCase @Inject constructor(
     private val storeRepository: StoreRepository,
-    private val organizationDao: OrganizationDao,
     private val organizationMemberDao: OrganizationMemberDao,
     private val userStoreMappingDao: UserStoreMappingDao,
     private val authRepository: AuthRepository,
+    private val syncOutboxWriter: SyncOutboxWriter,
     private val dataStore: DataStore<Preferences>
 ) {
 
@@ -34,11 +36,9 @@ class CreateStoreUseCase @Inject constructor(
 
     suspend operator fun invoke(storeName: String, storeTypeCode: String?): String {
         val user = authRepository.getCurrentUser()
-            ?: error("Cannot create a store without an authenticated user")
         val now = System.currentTimeMillis()
 
-        val organizationId = organizationMemberDao.getByUserId(user.id)?.organizationId
-            ?: createOrganization(storeName, user.id, now)
+        val organizationId = user?.let { organizationMemberDao.getByUserId(it.id)?.organizationId }
 
         val store = Store(
             organizationId = organizationId,
@@ -46,47 +46,27 @@ class CreateStoreUseCase @Inject constructor(
             storeTypeCode = storeTypeCode ?: "OTHER",
             name = storeName,
             createdAt = now,
-            createdBy = user.id
+            createdBy = user?.id
         )
         val storeId = storeRepository.createStore(store)
 
-        val isFirstStore = userStoreMappingDao.getCountByUserId(user.id) == 0
-        userStoreMappingDao.insert(
-            UserStoreMapping(
+        if (user != null) {
+            val isFirstStore = userStoreMappingDao.getCountByUserId(user.id) == 0
+            val userStoreMapping = UserStoreMapping(
                 userId = user.id,
                 storeId = storeId,
-                role = MembershipRole.OWNER,
                 isDefaultStore = isFirstStore,
                 createdAt = now,
                 createdBy = user.id
-            ).toEntity()
-        )
+            )
+            userStoreMappingDao.insert(userStoreMapping.toEntity())
+            syncOutboxWriter.enqueueInsert(Tables.USER_STORE_MAPPING, userStoreMapping.toDto())
+        }
 
         dataStore.edit { prefs ->
             prefs[HAS_STORE_KEY] = true
         }
 
         return storeId
-    }
-
-    private suspend fun createOrganization(storeName: String, userId: String, now: Long): String {
-        val organization = Organization(
-            name = "$storeName Organization",
-            createdAt = now,
-            createdBy = userId
-        )
-        organizationDao.insert(organization.toEntity())
-
-        organizationMemberDao.insert(
-            OrganizationMember(
-                organizationId = organization.id,
-                userId = userId,
-                role = MembershipRole.OWNER,
-                createdAt = now,
-                createdBy = userId
-            ).toEntity()
-        )
-
-        return organization.id
     }
 }

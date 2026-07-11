@@ -1,6 +1,8 @@
 package com.scalo.stocklify.core.data.database.mapper
 
 import com.scalo.stocklify.core.data.database.entity.OrganizationEntity
+import com.scalo.stocklify.core.data.sync.dto.OrganizationDto
+import com.scalo.stocklify.core.model.enums.SyncStatus
 import com.scalo.stocklify.core.model.models.Organization
 
 fun OrganizationEntity.toDomain(): Organization {
@@ -34,3 +36,30 @@ fun Organization.toEntity(): OrganizationEntity {
         syncStatus = syncStatus
     )
 }
+
+fun Organization.toDto() = OrganizationDto(
+    id = id,
+    name = name,
+    createdAt = createdAt,
+    createdBy = createdBy ?: "",
+    updatedAt = updatedAt,
+    updatedBy = updatedBy,
+    deletedAt = deletedAt,
+    deletedBy = deletedBy,
+    status = status,
+    version = version
+)
+
+fun OrganizationDto.toEntity() = OrganizationEntity(
+    id = id,
+    name = name,
+    createdAt = createdAt,
+    createdBy = createdBy,
+    updatedAt = updatedAt,
+    updatedBy = updatedBy,
+    deletedAt = deletedAt,
+    deletedBy = deletedBy,
+    status = status,
+    version = version,
+    syncStatus = SyncStatus.SYNCED
+)

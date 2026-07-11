@@ -30,6 +30,21 @@ class RegisterViewModel @Inject constructor(
         val current = _state.value
         var isValid = true
 
+        if (current.firstName.isBlank()) {
+            _state.update { it.copy(firstNameError = "First name is required") }
+            isValid = false
+        }
+
+        if (current.surname.isBlank()) {
+            _state.update { it.copy(surnameError = "Surname is required") }
+            isValid = false
+        }
+
+        if (current.phone.isBlank()) {
+            _state.update { it.copy(phoneError = "Phone number is required") }
+            isValid = false
+        }
+
         if (!Patterns.EMAIL_ADDRESS.matcher(current.email.trim()).matches()) {
             _state.update { it.copy(emailError = "Enter a valid email") }
             isValid = false
@@ -56,10 +71,19 @@ class RegisterViewModel @Inject constructor(
 
             try {
                 val current = _state.value
-                authRepository.signUp(current.email.trim(), current.password)
+                val metadata = mapOf(
+                    "first_name" to current.firstName.trim(),
+                    "middle_name" to current.middleName.trim().ifBlank { null },
+                    "surname" to current.surname.trim(),
+                    "full_name" to listOf(current.firstName, current.middleName, current.surname)
+                        .filter { it.isNotBlank() }
+                        .joinToString(" ") { it.trim() },
+                    "phone" to current.phone.trim()
+                )
+                authRepository.signUp(current.email.trim(), current.password, metadata)
                 _event.emit(RegisterEvent.Registered)
             } catch (e: Exception) {
-                _event.emit(RegisterEvent.ShowError(e.message ?: "Unable to sign up"))
+                _event.emit(RegisterEvent.ShowError(e.toRegisterErrorMessage()))
             } finally {
                 _state.update { it.copy(isLoading = false) }
             }
@@ -68,6 +92,18 @@ class RegisterViewModel @Inject constructor(
 
     fun onAction(action: RegisterAction) {
         when (action) {
+            is RegisterAction.FirstNameChanged ->
+                _state.update { it.copy(firstName = action.value, firstNameError = null) }
+
+            is RegisterAction.MiddleNameChanged ->
+                _state.update { it.copy(middleName = action.value) }
+
+            is RegisterAction.SurnameChanged ->
+                _state.update { it.copy(surname = action.value, surnameError = null) }
+
+            is RegisterAction.PhoneChanged ->
+                _state.update { it.copy(phone = action.value, phoneError = null) }
+
             is RegisterAction.EmailChanged ->
                 _state.update { it.copy(email = action.value, emailError = null) }
 

@@ -4,19 +4,24 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.scalo.stocklify.core.data.database.dao.StoreDao
 import com.scalo.stocklify.core.data.database.mapper.toDomain
+import com.scalo.stocklify.core.data.database.mapper.toDto
 import com.scalo.stocklify.core.data.database.mapper.toEntity
+import com.scalo.stocklify.core.data.sync.SyncOutboxWriter
 import com.scalo.stocklify.core.model.models.Store
+import com.scalo.stocklify.core.util.constants.Tables
 import com.scalo.stocklify.feature.stores.domain.repository.StoreRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class StoreRepositoryImpl @Inject constructor(
-    private val storeDao: StoreDao
+    private val storeDao: StoreDao,
+    private val syncOutboxWriter: SyncOutboxWriter
 ) : StoreRepository {
 
     override suspend fun createStore(store: Store): String {
         storeDao.insert(store.toEntity())
+        syncOutboxWriter.enqueueInsert(Tables.STORES, store.toDto())
         return store.id
     }
 

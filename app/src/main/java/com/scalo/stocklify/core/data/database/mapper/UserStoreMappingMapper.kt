@@ -1,7 +1,8 @@
 package com.scalo.stocklify.core.data.database.mapper
 
 import com.scalo.stocklify.core.data.database.entity.UserStoreMappingEntity
-import com.scalo.stocklify.core.model.enums.MembershipRole
+import com.scalo.stocklify.core.data.sync.dto.UserStoreMappingDto
+import com.scalo.stocklify.core.model.enums.SyncStatus
 import com.scalo.stocklify.core.model.models.UserStoreMapping
 
 fun UserStoreMappingEntity.toDomain(): UserStoreMapping {
@@ -9,7 +10,6 @@ fun UserStoreMappingEntity.toDomain(): UserStoreMapping {
         id = id,
         userId = userId,
         storeId = storeId,
-        role = MembershipRole.from(role),
         isDefaultStore = isDefaultStore,
         createdAt = createdAt,
         createdBy = createdBy,
@@ -28,7 +28,6 @@ fun UserStoreMapping.toEntity(): UserStoreMappingEntity {
         id = id,
         userId = userId,
         storeId = storeId,
-        role = role.value,
         isDefaultStore = isDefaultStore,
         createdAt = createdAt,
         createdBy = createdBy ?: "",
@@ -41,3 +40,34 @@ fun UserStoreMapping.toEntity(): UserStoreMappingEntity {
         syncStatus = syncStatus
     )
 }
+
+fun UserStoreMapping.toDto() = UserStoreMappingDto(
+    id = id,
+    userId = userId,
+    storeId = storeId,
+    isDefaultStore = isDefaultStore,
+    createdAt = createdAt,
+    createdBy = createdBy ?: "",
+    updatedAt = updatedAt,
+    updatedBy = updatedBy,
+    deletedAt = deletedAt,
+    deletedBy = deletedBy,
+    status = status,
+    version = version
+)
+
+fun UserStoreMappingDto.toEntity() = UserStoreMappingEntity(
+    id = id,
+    userId = userId,
+    storeId = storeId,
+    isDefaultStore = isDefaultStore,
+    createdAt = createdAt,
+    createdBy = createdBy,
+    updatedAt = updatedAt,
+    updatedBy = updatedBy,
+    deletedAt = deletedAt,
+    deletedBy = deletedBy,
+    status = status,
+    version = version,
+    syncStatus = SyncStatus.SYNCED
+)

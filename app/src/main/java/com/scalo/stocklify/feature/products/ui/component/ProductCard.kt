@@ -50,7 +50,8 @@ fun ProductCard(
     modifier: Modifier = Modifier,
     image: Painter? = null,
     title: String? = null,
-    price: Double? = null,
+    sellingPrice: Double? = null,
+    costPrice: Double? = null,
     stock: Int? = null,
     category: String? = null,
     isSelected: Boolean? = null,
@@ -114,14 +115,22 @@ fun ProductCard(
                 else StocklifyTheme.colors.error,
                 iconTint = StocklifyTheme.colors.grayscale500,
                 iconSize = StocklifySize.extraSmall,
+                fullWidth = true
             )
 
             Spacer(modifier = Modifier.height(StocklifySpacing.s))
 
             ProductDetailRow(
-                label = "Price",
-                value = if (price != null) "₱%.2f".format(price) else "Set Price",
-                valueColor = if (price != null) StocklifyTheme.colors.typography500
+                label = "Selling Price",
+                value = if (sellingPrice != null) "₱%.2f".format(sellingPrice) else "Set Selling Price",
+                valueColor = if (sellingPrice != null) StocklifyTheme.colors.typography500
+                             else StocklifyTheme.colors.error
+            )
+
+            ProductDetailRow(
+                label = "Cost Price",
+                value = if (costPrice != null) "₱%.2f".format(costPrice) else "Set Cost Price",
+                valueColor = if (costPrice != null) StocklifyTheme.colors.typography500
                              else StocklifyTheme.colors.error
             )
 
@@ -177,7 +186,8 @@ private fun ProductCardPreview() {
     ProductCard(
         onEditClick = {},
         title = "Ligo Sardines",
-        price = 25.50,
+        sellingPrice = 25.50,
+        costPrice = 18.00,
         stock = 120,
         category = "Canned Goods"
     )

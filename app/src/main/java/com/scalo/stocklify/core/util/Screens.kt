@@ -2,13 +2,17 @@ package com.scalo.stocklify.core.util
 
 sealed class Screen(val route: String) {
     object Onboarding : Screen("onboarding")
+    object WelcomePage: Screen("welcome")
     object Login : Screen("login")
+    object VerifyEmail : Screen("verifyEmail")
+    object PreparingWork : Screen("preparingWork")
     object Register : Screen("register")
     object Home : Screen("home")
     object CreateStore : Screen("store")
     object StoreCreated : Screen("storeCreated")
     object JoinStore : Screen("join")
-    object CreateJoinStore : Screen("createJoin")
+    object CreateJoinOrganization : Screen("createJoinOrganization")
+    object CreateOrganization : Screen("createOrganization")
     object AddProductOption : Screen("addProductOption")
     object ScanProduct : Screen("scanProduct")
     object ScanningProduct : Screen("scanningProduct")
@@ -27,6 +31,7 @@ sealed class Screen(val route: String) {
             return "addProductManually?name=$n&price=$p&categoryCode=$c&reviewIndex=$r&stock=$s&imageUri=$i"
         }
     }
+    object ReviewManualProduct : Screen("reviewManualProduct")
     object StoreReadyScreen : Screen("storeReady")
     object CurrentSales : Screen("currentSales")
     object Checkout : Screen("checkout/{total}") {
@@ -35,4 +40,5 @@ sealed class Screen(val route: String) {
     object SalesCompleted : Screen("salesCompleted/{total}/{payment}/{change}") {
         fun route(total: Double, payment: Double, change: Double) = "salesCompleted/$total/$payment/$change"
     }
+    object DatabaseViewer : Screen("databaseViewer")
 }

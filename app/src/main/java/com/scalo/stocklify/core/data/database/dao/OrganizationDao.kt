@@ -13,4 +13,7 @@ interface OrganizationDao : BaseDao<OrganizationEntity> {
         WHERE id = :id
     """)
     suspend fun getById(id: String): OrganizationEntity?
+
+    @Query("UPDATE organizations SET sync_status = 'SYNCED' WHERE id = :id")
+    suspend fun markSynced(id: String)
 }

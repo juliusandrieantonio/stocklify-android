@@ -4,6 +4,8 @@ import com.scalo.stocklify.feature.auth.data.repository.AuthRepositoryImpl
 import com.scalo.stocklify.feature.auth.domain.repository.AuthRepository
 import com.scalo.stocklify.feature.onboarding.data.repository.OnboardingRepositoryImpl
 import com.scalo.stocklify.feature.onboarding.domain.repository.OnboardingRepository
+import com.scalo.stocklify.feature.premium.data.repository.OrganizationRepositoryImpl
+import com.scalo.stocklify.feature.premium.domain.repository.OrganizationRepository
 import com.scalo.stocklify.feature.stores.data.repository.StoreRepositoryImpl
 import com.scalo.stocklify.feature.stores.data.repository.StoreTypeRepositoryImpl
 import com.scalo.stocklify.feature.stores.domain.repository.StoreRepository
@@ -33,6 +35,11 @@ abstract class RepositoryModule {
     abstract fun bindStoreTypeRepository(
         impl: StoreTypeRepositoryImpl
     ): StoreTypeRepository
+
+    @Binds
+    abstract fun bindOrganizationRepository(
+        impl: OrganizationRepositoryImpl
+    ): OrganizationRepository
 
     @Binds
     @Singleton

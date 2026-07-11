@@ -6,7 +6,7 @@ import java.util.UUID
 
 data class Product(
     val id: String = UUID.randomUUID().toString(),
-    val organizationId: String,
+    val organizationId: String?,
     val name: String,
     val description: String? = null,
     val imageUrl: String? = null,

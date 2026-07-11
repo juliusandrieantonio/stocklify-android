@@ -3,7 +3,8 @@ package com.scalo.stocklify.core.model.enums
 enum class SyncStatus(val value: String) {
     SYNCED("SYNCED"),
     PENDING_PUSH("PENDING_PUSH"),
-    PUSH_FAILED("PUSH_FAILED");
+    PUSH_FAILED("PUSH_FAILED"),
+    PENDING("PENDING");
 
     companion object {
         fun from(value: String): SyncStatus {

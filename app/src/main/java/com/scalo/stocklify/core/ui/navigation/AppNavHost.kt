@@ -1,8 +1,6 @@
 package com.scalo.stocklify.core.ui.navigation
 
-import android.net.Uri
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -17,6 +15,10 @@ import androidx.navigation.navArgument
 import com.scalo.stocklify.core.util.Screen
 import com.scalo.stocklify.feature.auth.ui.LoginScreen
 import com.scalo.stocklify.feature.auth.ui.RegisterScreen
+import com.scalo.stocklify.feature.auth.ui.VerifyEmailScreen
+import com.scalo.stocklify.feature.devtools.ui.DatabaseViewerScreen
+import com.scalo.stocklify.feature.onboarding.ui.WelcomeScreen
+import com.scalo.stocklify.feature.preparing.ui.PreparingWorkScreen
 import com.scalo.stocklify.feature.home.ui.HomeScreen
 import com.scalo.stocklify.feature.salesmode.ui.SalesModeViewModel
 import com.scalo.stocklify.feature.salesmode.ui.screens.CheckoutScreen
@@ -29,11 +31,14 @@ import com.scalo.stocklify.feature.products.ui.screens.ImportSuccessfulScreen
 import com.scalo.stocklify.feature.products.ui.screens.ScanProductScreen
 import com.scalo.stocklify.feature.products.ui.ScanProductViewModel
 import com.scalo.stocklify.feature.products.ui.screens.ReviewImportedProductScreen
+import com.scalo.stocklify.feature.products.ui.screens.ReviewManualProductScreen
 import com.scalo.stocklify.feature.products.ui.screens.ScanningProductScreen
 import com.scalo.stocklify.feature.products.ui.screens.StoreReadyScreen
-import com.scalo.stocklify.feature.stores.ui.CreateJoinStoreScreen
+import com.scalo.stocklify.feature.products.ui.ManualAddProductViewModel
+import com.scalo.stocklify.feature.premium.ui.CreateOrganizationScreen
+import com.scalo.stocklify.feature.premium.ui.CreateJoinOrganizationScreen
+import com.scalo.stocklify.feature.premium.ui.JoinOrganizationScreen
 import com.scalo.stocklify.feature.stores.ui.CreateStoreScreen
-import com.scalo.stocklify.feature.stores.ui.JoinStoreScreen
 import com.scalo.stocklify.feature.stores.ui.StoreCreatedScreen
 
 @Composable
@@ -49,8 +54,23 @@ fun AppNavHost(
         composable(Screen.Onboarding.route) {
             OnboardingScreen(
                 onFinished = {
-                    navController.navigate(Screen.Login.route) {
+                    navController.navigate(Screen.WelcomePage.route) {
                         popUpTo(Screen.Onboarding.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.WelcomePage.route) {
+            WelcomeScreen(
+                onLogin = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.WelcomePage.route) { inclusive = true }
+                    }
+                },
+                onContinueAsGuest = {
+                    navController.navigate(Screen.CreateStore.route) {
+                        popUpTo(Screen.WelcomePage.route) { inclusive = true }
                     }
                 }
             )
@@ -58,8 +78,8 @@ fun AppNavHost(
 
         composable(Screen.Login.route) {
             LoginScreen(
-                onLoggedIn = { hasStoreCached ->
-                    val destination = if (hasStoreCached) "home_flow" else Screen.CreateJoinStore.route
+                onLoggedIn = { isEmailVerified ->
+                    val destination = if (isEmailVerified) Screen.PreparingWork.route else Screen.VerifyEmail.route
                     navController.navigate(destination) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
@@ -70,11 +90,41 @@ fun AppNavHost(
             )
         }
 
+        composable(Screen.VerifyEmail.route) {
+            VerifyEmailScreen(
+                onVerified = {
+                    navController.navigate(Screen.PreparingWork.route) {
+                        popUpTo(Screen.VerifyEmail.route) { inclusive = true }
+                    }
+                },
+                onSignOut = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.PreparingWork.route) {
+            PreparingWorkScreen(
+                onFinished = { hasOrganizationCached, hasStoreCached ->
+                    val destination = when {
+                        !hasOrganizationCached -> Screen.CreateJoinOrganization.route
+                        !hasStoreCached -> Screen.CreateStore.route
+                        else -> "home_flow"
+                    }
+                    navController.navigate(destination) {
+                        popUpTo(Screen.PreparingWork.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
         composable(Screen.Register.route) {
             RegisterScreen(
                 onBack = { navController.popBackStack() },
                 onRegistered = {
-                    navController.navigate(Screen.CreateJoinStore.route) {
+                    navController.navigate(Screen.VerifyEmail.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
                 }
@@ -104,6 +154,9 @@ fun AppNavHost(
                             popUpTo(0) { inclusive = true }
                         }
                     },
+                    onOpenDatabaseViewer = {
+                        navController.navigate(Screen.DatabaseViewer.route)
+                    }
                 )
             }
 
@@ -166,12 +219,12 @@ fun AppNavHost(
             }
         }
 
-        composable(Screen.CreateJoinStore.route) {
-            CreateJoinStoreScreen(
-                onCreateStore = {
-                    navController.navigate(Screen.CreateStore.route)
+        composable(Screen.CreateJoinOrganization.route) {
+            CreateJoinOrganizationScreen(
+                onCreateOrganization = {
+                    navController.navigate(Screen.CreateOrganization.route)
                 },
-                onJoinStore = {
+                onJoinOrganization = {
                     navController.navigate(Screen.JoinStore.route)
                 }
             )
@@ -245,7 +298,9 @@ fun AppNavHost(
                 ScanningProductScreen(
                     onBack = { navController.popBackStack() },
                     onFinish = {
-                        navController.navigate(Screen.ReviewImportedProduct.route)
+                        navController.navigate(Screen.ReviewImportedProduct.route) {
+                            popUpTo(Screen.ScanningProduct.route) { inclusive = true }
+                        }
                     },
                     viewModel = viewModel
                 )
@@ -254,24 +309,6 @@ fun AppNavHost(
             composable(Screen.ReviewImportedProduct.route) { entry ->
                 val parentEntry = remember(entry) { navController.getBackStackEntry("scan_flow") }
                 val viewModel: ScanProductViewModel = hiltViewModel(parentEntry)
-                val categories by viewModel.categories.collectAsState()
-
-                // Receive result from AddEditProductScreen when editing a scanned product
-                val editedIndex by entry.savedStateHandle
-                    .getStateFlow("review_edit_index", -1)
-                    .collectAsState()
-                LaunchedEffect(editedIndex) {
-                    if (editedIndex >= 0) {
-                        val name = entry.savedStateHandle.remove<String>("review_edit_name") ?: ""
-                        val price = entry.savedStateHandle.remove<String>("review_edit_price")?.toDoubleOrNull()
-                        val categoryCode = entry.savedStateHandle.remove<String>("review_edit_category_code")
-                        val stock = entry.savedStateHandle.remove<String>("review_edit_stock")?.toIntOrNull()
-                        val imageUri = entry.savedStateHandle.remove<String>("review_edit_image_uri")
-                            ?.takeIf { it.isNotEmpty() }?.let { Uri.parse(it) }
-                        entry.savedStateHandle.remove<Int>("review_edit_index")
-                        viewModel.updateScannedProduct(editedIndex, name, price, categories.find { it.code == categoryCode }, stock, imageUri)
-                    }
-                }
 
                 ReviewImportedProductScreen(
                     onBack = { navController.popBackStack() },
@@ -279,21 +316,6 @@ fun AppNavHost(
                         navController.navigate(Screen.ImportSuccessful.route(count)) {
                             popUpTo("scan_flow") { inclusive = true }
                         }
-                    },
-                    onEditManually = {
-                        navController.navigate(Screen.AddProductManually.route())
-                    },
-                    onEditProduct = { index, product ->
-                        navController.navigate(
-                            Screen.AddProductManually.route(
-                                name = product.productName,
-                                price = product.price,
-                                categoryCode = product.matchedCategory?.code,
-                                reviewIndex = index,
-                                stock = product.stock,
-                                imageUri = product.imageUri,
-                            )
-                        )
                     },
                     viewModel = viewModel
                 )
@@ -322,36 +344,48 @@ fun AppNavHost(
             )
         }
 
-        composable(
-            route = Screen.AddProductManually.route,
-            arguments = listOf(
-                navArgument("name") { nullable = true; defaultValue = null },
-                navArgument("price") { nullable = true; defaultValue = null },
-                navArgument("categoryCode") { nullable = true; defaultValue = null },
-                navArgument("reviewIndex") { nullable = true; defaultValue = null },
-                navArgument("stock") { nullable = true; defaultValue = null },
-                navArgument("imageUri") { nullable = true; defaultValue = null },
-            )
+        navigation(
+            startDestination = Screen.AddProductManually.route,
+            route = "manual_add_flow"
         ) {
-            AddEditProductScreen(
-                onBack = { navController.popBackStack() },
-                onSave = {
-                    navController.navigate(Screen.StoreReadyScreen.route) {
-                        popUpTo(Screen.AddProductManually.route) { inclusive = true }
+            composable(
+                route = Screen.AddProductManually.route,
+                arguments = listOf(
+                    navArgument("name") { nullable = true; defaultValue = null },
+                    navArgument("price") { nullable = true; defaultValue = null },
+                    navArgument("categoryCode") { nullable = true; defaultValue = null },
+                    navArgument("reviewIndex") { nullable = true; defaultValue = null },
+                    navArgument("stock") { nullable = true; defaultValue = null },
+                    navArgument("imageUri") { nullable = true; defaultValue = null },
+                )
+            ) { entry ->
+                val parentEntry = remember(entry) { navController.getBackStackEntry("manual_add_flow") }
+                val manualAddViewModel: ManualAddProductViewModel = hiltViewModel(parentEntry)
+                AddEditProductScreen(
+                    onBack = { navController.popBackStack() },
+                    onProductStaged = { index, draft ->
+                        manualAddViewModel.upsertDraft(index, draft)
+                        navController.navigate(Screen.ReviewManualProduct.route) {
+                            popUpTo(Screen.AddProductManually.route) { inclusive = true }
+                            launchSingleTop = true
+                        }
                     }
-                },
-                onReviewEditDone = { index, name, price, categoryCode, stock, imageUri ->
-                    navController.previousBackStackEntry?.savedStateHandle?.run {
-                        set("review_edit_index", index)
-                        set("review_edit_name", name)
-                        set("review_edit_price", price?.toString())
-                        set("review_edit_category_code", categoryCode)
-                        set("review_edit_stock", stock?.toString())
-                        set("review_edit_image_uri", imageUri?.toString())
+                )
+            }
+
+            composable(Screen.ReviewManualProduct.route) { entry ->
+                val parentEntry = remember(entry) { navController.getBackStackEntry("manual_add_flow") }
+                val manualAddViewModel: ManualAddProductViewModel = hiltViewModel(parentEntry)
+                ReviewManualProductScreen(
+                    viewModel = manualAddViewModel,
+                    onBack = { navController.popBackStack() },
+                    onSaved = {
+                        navController.navigate(Screen.StoreReadyScreen.route) {
+                            popUpTo("manual_add_flow") { inclusive = true }
+                        }
                     }
-                    navController.popBackStack()
-                }
-            )
+                )
+            }
         }
 
         composable(Screen.StoreReadyScreen.route) {
@@ -365,11 +399,28 @@ fun AppNavHost(
         }
 
         composable(Screen.JoinStore.route) {
-            JoinStoreScreen(
+            JoinOrganizationScreen(
                 onBack = { navController.popBackStack() },
                 onJoined = {
-                    navController.navigate("home_flow") {
+                    navController.navigate(Screen.PreparingWork.route) {
                         popUpTo(Screen.JoinStore.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.DatabaseViewer.route) {
+            DatabaseViewerScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.CreateOrganization.route) {
+            CreateOrganizationScreen(
+                onBack = { navController.popBackStack() },
+                onCreateOrganization = {
+                    navController.navigate(Screen.CreateJoinOrganization.route) {
+                        popUpTo(Screen.CreateStore.route) { inclusive = true }
                     }
                 }
             )
