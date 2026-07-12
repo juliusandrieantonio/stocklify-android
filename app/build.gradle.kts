@@ -42,6 +42,7 @@ android {
             dimension = "env"
             applicationIdSuffix = ".qa"
             versionNameSuffix = "-qa"
+            resValue("string", "app_name", "Stocklify QA")
             buildConfigField("String", "SUPABASE_URL", "\"https://elwlpmvkryindzbkmfrv.supabase.co\"")
             buildConfigField("String", "SUPABASE_ANON_KEY", "\"sb_publishable_E8XV8GhasVVHGyvuTdw1YQ_PctHuvXy\"")
         }
@@ -49,6 +50,7 @@ android {
             dimension = "env"
             applicationIdSuffix = ".uat"
             versionNameSuffix = "-uat"
+            resValue("string", "app_name", "Stocklify UAT")
             buildConfigField("String", "SUPABASE_URL", "\"https://elwlpmvkryindzbkmfrv.supabase.co\"")
             buildConfigField("String", "SUPABASE_ANON_KEY", "\"sb_publishable_E8XV8GhasVVHGyvuTdw1YQ_PctHuvXy\"")
         }
