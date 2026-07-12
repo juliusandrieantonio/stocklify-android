@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - qa
+      - uat
 
 jobs:
   build-and-distribute:
@@ -30,17 +31,32 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Determine flavor from branch
+        id: flavor
+        run: |
+          case "${{ github.ref_name }}" in
+            qa)      echo "flavor=qa" >> "$GITHUB_OUTPUT" ;;
+            uat)     echo "flavor=uat" >> "$GITHUB_OUTPUT" ;;
+          esac
+
+      - name: Capitalize flavor for Gradle task
+        id: flavor_cap
+        run: |
+          f="${{ steps.flavor.outputs.flavor }}"
+          echo "cap=$(tr '[:lower:]' '[:upper:]' <<< ${f:0:1})${f:1}" >> "$GITHUB_OUTPUT"
+
       - name: Build debug APK
-        run: ./gradlew assembleDevDebug
+        run: ./gradlew assemble${{ steps.flavor_cap.outputs.cap }}Debug
 
       - name: Upload to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
-          appId: ${{ secrets.FIREBASE_APP_ID }}
+          appId: ${{ steps.flavor.outputs.flavor == 'qa' && secrets.FIREBASE_APP_ID_QA || steps.flavor.outputs.flavor == 'uat' && secrets.FIREBASE_APP_ID_UAT }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           groups: testers
-          file: app/build/outputs/apk/dev/debug/app-dev-debug.apk
+          file: app/build/outputs/apk/${{ steps.flavor.outputs.flavor }}/debug/app-${{ steps.flavor.outputs.flavor }}-debug.apk
           releaseNotes: |
+            Flavor: ${{ steps.flavor.outputs.flavor }}
             Branch: ${{ github.ref_name }}
             Commit: ${{ github.sha }}
             ${{ github.event.head_commit.message }}
