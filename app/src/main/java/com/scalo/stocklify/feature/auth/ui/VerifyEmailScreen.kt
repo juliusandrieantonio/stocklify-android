@@ -73,18 +73,9 @@ fun VerifyEmailScreen(
 
             StocklifyPrimaryButton(
                 fullWidth = true,
-                text = "I've Verified, Continue",
+                text = "Go back to Login Screen",
                 isLoading = state.isChecking,
-                onClick = { viewModel.checkVerification() }
-            )
-
-            Spacer(modifier = Modifier.height(StocklifySize.smallest))
-
-            StocklifyOutlineButton(
-                fullWidth = true,
-                text = "Resend Verification Email",
-                isLoading = state.isResending,
-                onClick = { viewModel.resendEmail() }
+                onClick = { viewModel.signOut() }
             )
         }
     }
