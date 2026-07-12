@@ -1,14 +1,12 @@
 name: Deploy to Firebase App Distribution
 
 on:
-  pull_request:
-    types: [closed]
+  push:
     branches:
-      - develop
+      - qa
 
 jobs:
   build-and-distribute:
-    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
     steps:
