@@ -11,26 +11,6 @@ plugins {
     alias(libs.plugins.google.services)
 }
 
-val localProperties = Properties().apply {
-    val localPropertiesFile = rootProject.file("local.properties")
-    if (localPropertiesFile.exists()) {
-        localPropertiesFile.inputStream().use { load(it) }
-    }
-}
-
-fun ApplicationProductFlavor.buildConfigFieldFromLocalProperties(envSuffix: String) {
-    buildConfigField(
-        "String",
-        "SUPABASE_URL",
-        "\"${localProperties.getProperty("SUPABASE_URL_$envSuffix", "")}\""
-    )
-    buildConfigField(
-        "String",
-        "SUPABASE_ANON_KEY",
-        "\"${localProperties.getProperty("SUPABASE_ANON_KEY_$envSuffix", "")}\""
-    )
-}
-
 android {
     namespace = "com.scalo.stocklify"
     compileSdk = 36
@@ -49,31 +29,34 @@ android {
     flavorDimensions += "env"
 
     productFlavors {
+        // TODO: CREATE DIFFERENT SUPABASE ENV
         create("dev") {
             dimension = "env"
             applicationIdSuffix = ".dev"
             versionNameSuffix = "-dev"
             resValue("string", "app_name", "Stocklify Dev")
-            buildConfigFieldFromLocalProperties("DEV")
+            buildConfigField("String", "SUPABASE_URL", "\"https://elwlpmvkryindzbkmfrv.supabase.co\"")
+            buildConfigField("String", "SUPABASE_ANON_KEY", "\"sb_publishable_E8XV8GhasVVHGyvuTdw1YQ_PctHuvXy\"")
         }
         create("qa") {
             dimension = "env"
             applicationIdSuffix = ".qa"
             versionNameSuffix = "-qa"
-            resValue("string", "app_name", "Stocklify QA")
-            buildConfigFieldFromLocalProperties("QA")
+            buildConfigField("String", "SUPABASE_URL", "\"https://elwlpmvkryindzbkmfrv.supabase.co\"")
+            buildConfigField("String", "SUPABASE_ANON_KEY", "\"sb_publishable_E8XV8GhasVVHGyvuTdw1YQ_PctHuvXy\"")
         }
         create("uat") {
             dimension = "env"
             applicationIdSuffix = ".uat"
             versionNameSuffix = "-uat"
-            resValue("string", "app_name", "Stocklify UAT")
-            buildConfigFieldFromLocalProperties("UAT")
+            buildConfigField("String", "SUPABASE_URL", "\"https://elwlpmvkryindzbkmfrv.supabase.co\"")
+            buildConfigField("String", "SUPABASE_ANON_KEY", "\"sb_publishable_E8XV8GhasVVHGyvuTdw1YQ_PctHuvXy\"")
         }
         create("prod") {
             dimension = "env"
             resValue("string", "app_name", "Stocklify")
-            buildConfigFieldFromLocalProperties("PROD")
+            buildConfigField("String", "SUPABASE_URL", "\"https://elwlpmvkryindzbkmfrv.supabase.co\"")
+            buildConfigField("String", "SUPABASE_ANON_KEY", "\"sb_publishable_E8XV8GhasVVHGyvuTdw1YQ_PctHuvXy\"")
         }
     }
 
