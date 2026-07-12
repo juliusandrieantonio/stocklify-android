@@ -93,7 +93,7 @@ fun AppNavHost(
         composable(Screen.VerifyEmail.route) {
             VerifyEmailScreen(
                 onVerified = {
-                    navController.navigate(Screen.PreparingWork.route) {
+                    navController.navigate(Screen.CreateJoinOrganization.route) {
                         popUpTo(Screen.VerifyEmail.route) { inclusive = true }
                     }
                 },

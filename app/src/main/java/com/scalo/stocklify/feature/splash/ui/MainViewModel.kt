@@ -42,9 +42,6 @@ class MainViewModel @Inject constructor(
             val hasOrganizationCached =
                 onboardingRepo.hasOrganizationCached()
 
-            val hasStoreCached =
-                onboardingRepo.hasStoreCached()
-
             _startDestination.value = when {
 
                 !hasCompletedOnboarding ->
@@ -60,10 +57,7 @@ class MainViewModel @Inject constructor(
                     Screen.VerifyEmail.route
 
                 !hasOrganizationCached ->
-                    Screen.CreateOrganization.route
-
-//                !hasStoreCached ->
-//                    Screen.CreateJoinStore.route
+                    Screen.CreateJoinOrganization.route
 
                 else ->
                     "home_flow"
