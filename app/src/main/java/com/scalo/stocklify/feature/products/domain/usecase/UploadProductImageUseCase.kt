@@ -2,6 +2,7 @@ package com.scalo.stocklify.feature.products.domain.usecase
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import com.scalo.stocklify.core.util.ImageCompressor
 import com.scalo.stocklify.core.util.constants.Buckets
 import com.scalo.stocklify.core.util.constants.ImageUploadConfig
@@ -13,7 +14,7 @@ import javax.inject.Inject
 
 /**
  * Compresses a locally picked product image and uploads it to Supabase Storage,
- * returning the storage key (e.g. "organizations/{orgId}/stores/{storeId}/products/{productId}_v1.webp")
+ * returning the storage key (e.g. "{orgId}/stores/{storeId}/products/{productId}_v1.webp")
  * to be stored on the product record in place of the local file URI.
  */
 class UploadProductImageUseCase @Inject constructor(
@@ -34,7 +35,7 @@ class UploadProductImageUseCase @Inject constructor(
             quality = ImageUploadConfig.WEBP_QUALITY,
         )
 
-        val key = "organizations/$organizationId/stores/$storeId/products/${productId}_v1.webp"
+        val key = "$organizationId/stores/$storeId/products/${productId}_v1.webp"
         storage.from(Buckets.PRODUCT_IMAGES).upload(key, bytes) { upsert = true }
         key
     }

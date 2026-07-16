@@ -21,7 +21,6 @@ import com.scalo.stocklify.core.model.models.StoreProductMapping
 import com.scalo.stocklify.core.util.constants.Tables
 import com.scalo.stocklify.feature.auth.domain.repository.AuthRepository
 import com.scalo.stocklify.feature.products.domain.usecase.RecognizeProductFromImageUseCase
-import com.scalo.stocklify.feature.products.domain.usecase.UploadProductImageUseCase
 import com.scalo.stocklify.feature.products.model.ScannedProductResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,7 +28,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import java.util.UUID
 import javax.inject.Inject
 
 sealed class ScanningState {
@@ -56,7 +54,6 @@ class ScanProductViewModel @Inject constructor(
     private val stockMovementDao: StockMovementDao,
     private val syncOutboxWriter: SyncOutboxWriter,
     private val authRepository: AuthRepository,
-    private val uploadProductImage: UploadProductImageUseCase,
 ) : ViewModel() {
 
     private val _imageUri = MutableStateFlow<Uri?>(null)
@@ -161,18 +158,12 @@ class ScanProductViewModel @Inject constructor(
                 valid.forEach { result ->
                     val now = System.currentTimeMillis()
 
-                    val productId = UUID.randomUUID().toString()
-                    val imageKey = result.imageUri?.let { localUri ->
-                        store.organizationId?.let { organizationId ->
-                            uploadProductImage(localUri, organizationId, store.id, productId)
-                        }
-                    }
-
                     val product = Product(
-                        id = productId,
                         organizationId = store.organizationId,
                         name = result.productName!!,
-                        imageUrl = imageKey,
+                        // Local file:// URI for now — the push/sync step uploads it to
+                        // Supabase Storage and rewrites this to a storage key.
+                        imageUrl = result.imageUri?.toString(),
                         createdAt = now,
                         createdBy = userId,
                     )

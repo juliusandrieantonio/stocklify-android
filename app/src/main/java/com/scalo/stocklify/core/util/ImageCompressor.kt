@@ -17,9 +17,11 @@ object ImageCompressor {
      */
     fun compressToWebp(context: Context, uri: Uri, maxDimensionPx: Int, quality: Int): ByteArray {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        context.contentResolver.openInputStream(uri)?.use {
-            BitmapFactory.decodeStream(it, null, bounds)
-        } ?: throw IllegalArgumentException("Unable to open image at $uri")
+        val stream = context.contentResolver.openInputStream(uri)
+            ?: throw IllegalArgumentException("Unable to open image at $uri")
+        // decodeStream always returns null when inJustDecodeBounds = true — the
+        // point of this pass is only to populate bounds.outWidth/outHeight.
+        stream.use { BitmapFactory.decodeStream(it, null, bounds) }
 
         val sampleSize = calculateInSampleSize(bounds.outWidth, bounds.outHeight, maxDimensionPx)
         val decodeOptions = BitmapFactory.Options().apply { inSampleSize = sampleSize }

@@ -1,6 +1,5 @@
 package com.scalo.stocklify.feature.salesmode.ui.screens
 
-import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -31,7 +30,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -39,18 +37,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import java.io.File
 import com.scalo.stocklify.R
 import com.scalo.stocklify.core.model.models.Category
 import com.scalo.stocklify.core.util.categoryIcon
@@ -66,7 +60,6 @@ import com.scalo.stocklify.core.ui.theme.StocklifyStaticColors
 import com.scalo.stocklify.core.ui.theme.StocklifyStroke
 import com.scalo.stocklify.core.ui.theme.StocklifyTextStyles
 import com.scalo.stocklify.core.ui.theme.StocklifyTheme
-import androidx.core.net.toUri
 import com.scalo.stocklify.feature.salesmode.ui.CartItem
 import com.scalo.stocklify.feature.salesmode.ui.ProductModel
 import com.scalo.stocklify.feature.salesmode.ui.SalesModeAction
@@ -74,6 +67,7 @@ import com.scalo.stocklify.feature.salesmode.ui.SalesModeFilterSheet
 import com.scalo.stocklify.feature.salesmode.ui.SalesModeProductSheet
 import com.scalo.stocklify.feature.salesmode.ui.SalesModeUiState
 import com.scalo.stocklify.feature.salesmode.ui.SalesModeViewModel
+import com.scalo.stocklify.feature.salesmode.ui.rememberProductImageBitmap
 
 @Composable
 fun SalesModeScreen(
@@ -89,6 +83,7 @@ fun SalesModeScreen(
         onAddManually = onAddManually,
         onScanProduct = onScanProduct,
         onCurrentSales = onCurrentSales,
+        resolveImageFile = viewModel::resolveProductImageFile,
     )
 }
 
@@ -99,6 +94,7 @@ private fun SalesModeContent(
     onAddManually: () -> Unit,
     onScanProduct: () -> Unit,
     onCurrentSales: () -> Unit,
+    resolveImageFile: suspend (String, String?) -> File?,
 ) {
 
     var showFilterSheet by remember { mutableStateOf(false) }
@@ -138,6 +134,7 @@ private fun SalesModeContent(
                 onScanProduct = onScanProduct,
                 onAddToCart = { product, qty -> onAction(SalesModeAction.AddToCart(product, qty)) },
                 onRemoveFromCart = { onAction(SalesModeAction.RemoveFromCart(it)) },
+                resolveImageFile = resolveImageFile,
             )
         }
 
@@ -228,6 +225,7 @@ private fun Products(
     onScanProduct: () -> Unit,
     onAddToCart: (ProductModel, Int) -> Unit,
     onRemoveFromCart: (String) -> Unit,
+    resolveImageFile: suspend (String, String?) -> File?,
 ) {
     var selectedProduct by remember { mutableStateOf<ProductModel?>(null) }
 
@@ -240,6 +238,7 @@ private fun Products(
             existingQuantity = existingQty,
             onAddToSales = { qty -> onAddToCart(product, qty) },
             onDismiss = { selectedProduct = null },
+            resolveImageFile = resolveImageFile,
         )
     }
 
@@ -302,6 +301,7 @@ private fun Products(
                     inCart = cartItem != null,
                     onTap = { selectedProduct = product },
                     onRemove = { onRemoveFromCart(product.id) },
+                    resolveImageFile = resolveImageFile,
                 )
             }
         }
@@ -309,20 +309,14 @@ private fun Products(
 }
 
 @Composable
-private fun ProductCard(product: ProductModel, inCart: Boolean, onTap: () -> Unit, onRemove: () -> Unit) {
-    val context = LocalContext.current
-
-    val imageBitmap by produceState<ImageBitmap?>(initialValue = null, key1 = product.imageUrl) {
-        value = withContext(Dispatchers.IO) {
-            product.imageUrl?.let { url ->
-                runCatching {
-                    context.contentResolver
-                        .openInputStream(url.toUri())
-                        ?.use { BitmapFactory.decodeStream(it)?.asImageBitmap() }
-                }.getOrNull()
-            }
-        }
-    }
+private fun ProductCard(
+    product: ProductModel,
+    inCart: Boolean,
+    onTap: () -> Unit,
+    onRemove: () -> Unit,
+    resolveImageFile: suspend (String, String?) -> File?,
+) {
+    val imageBitmap by rememberProductImageBitmap(product.id, product.imageUrl, resolveImageFile)
 
     Column(
         modifier = Modifier
@@ -512,6 +506,7 @@ private fun SalesModeScreenPreview() {
                 ),
             ),
             onAction = {},
+            resolveImageFile = { _, _ -> null },
         )
     }
 }

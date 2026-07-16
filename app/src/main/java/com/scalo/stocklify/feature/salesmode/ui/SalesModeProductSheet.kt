@@ -1,6 +1,5 @@
 package com.scalo.stocklify.feature.salesmode.ui
 
-import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -23,21 +22,15 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import java.io.File
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -60,23 +53,13 @@ fun SalesModeProductSheet(
     existingQuantity: Int,
     onAddToSales: (quantity: Int) -> Unit,
     onDismiss: () -> Unit,
+    resolveImageFile: suspend (String, String?) -> File?,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val context = LocalContext.current
 
     var quantity by remember(product.id) { mutableIntStateOf(existingQuantity.coerceAtLeast(1)) }
 
-    val imageBitmap by produceState<ImageBitmap?>(initialValue = null, key1 = product.imageUrl) {
-        value = withContext(Dispatchers.IO) {
-            product.imageUrl?.let { url ->
-                runCatching {
-                    context.contentResolver
-                        .openInputStream(url.toUri())
-                        ?.use { BitmapFactory.decodeStream(it)?.asImageBitmap() }
-                }.getOrNull()
-            }
-        }
-    }
+    val imageBitmap by rememberProductImageBitmap(product.id, product.imageUrl, resolveImageFile)
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,

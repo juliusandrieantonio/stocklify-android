@@ -41,6 +41,15 @@ data class ProductEntity(
     @ColumnInfo(name = "image_url")
     val imageUrl: String?,
 
+    // Local cache of a downloaded remote image, keyed by the remote value it
+    // was downloaded for. Not part of ProductDto — preserved across pulls by
+    // ProductSync rather than being sent to/overwritten by the server.
+    @ColumnInfo(name = "local_image_path")
+    val localImagePath: String? = null,
+
+    @ColumnInfo(name = "cached_image_key")
+    val cachedImageKey: String? = null,
+
     @ColumnInfo(name = "created_at")
     val createdAt: Long,
 

@@ -7,6 +7,7 @@ import com.scalo.stocklify.core.data.database.dao.ProductDao
 import com.scalo.stocklify.core.data.database.dao.StoreDao
 import com.scalo.stocklify.core.data.database.dao.StoreProductMappingDao
 import com.scalo.stocklify.core.data.database.mapper.toDomain
+import com.scalo.stocklify.feature.products.domain.usecase.GetProductImageFileUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -29,7 +30,11 @@ class SalesModeViewModel @Inject constructor(
     private val categoryDao: CategoryDao,
     private val productDao: ProductDao,
     private val storeProductMappingDao: StoreProductMappingDao,
+    private val getProductImageFile: GetProductImageFileUseCase,
 ) : ViewModel() {
+
+    suspend fun resolveProductImageFile(productId: String, imageUrl: String?) =
+        getProductImageFile(productId, imageUrl)
 
     private val _state = MutableStateFlow(SalesModeUiState())
     val state = _state.asStateFlow()

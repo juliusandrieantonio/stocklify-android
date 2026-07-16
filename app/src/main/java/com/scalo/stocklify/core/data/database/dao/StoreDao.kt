@@ -25,6 +25,7 @@ interface StoreDao : BaseDao<StoreEntity> {
     @Query("""
         SELECT *
         FROM stores
+        WHERE status = 'ACTIVE'
         ORDER BY name
     """)
     fun getAll(): Flow<List<StoreEntity>>
