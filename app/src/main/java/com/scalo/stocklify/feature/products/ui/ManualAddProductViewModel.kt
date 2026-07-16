@@ -16,6 +16,7 @@ import com.scalo.stocklify.core.model.models.StockMovement
 import com.scalo.stocklify.core.model.models.StoreProductMapping
 import com.scalo.stocklify.core.util.constants.Tables
 import com.scalo.stocklify.feature.auth.domain.repository.AuthRepository
+import com.scalo.stocklify.feature.products.domain.usecase.UploadProductImageUseCase
 import com.scalo.stocklify.feature.products.model.ManualProductDraft
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,6 +24,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 sealed class ManualSaveState {
@@ -40,6 +42,7 @@ class ManualAddProductViewModel @Inject constructor(
     private val stockMovementDao: StockMovementDao,
     private val syncOutboxWriter: SyncOutboxWriter,
     private val authRepository: AuthRepository,
+    private val uploadProductImage: UploadProductImageUseCase,
 ) : ViewModel() {
 
     private val _drafts = MutableStateFlow<List<ManualProductDraft>>(emptyList())
@@ -72,10 +75,18 @@ class ManualAddProductViewModel @Inject constructor(
                         ?: throw IllegalStateException("No category selected")
                     val now = System.currentTimeMillis()
 
+                    val productId = UUID.randomUUID().toString()
+                    val imageKey = draft.imageUri?.let { localUri ->
+                        store.organizationId?.let { organizationId ->
+                            uploadProductImage(localUri, organizationId, store.id, productId)
+                        }
+                    }
+
                     val product = Product(
+                        id = productId,
                         organizationId = store.organizationId,
                         name = draft.name,
-                        imageUrl = draft.imageUri?.toString(),
+                        imageUrl = imageKey,
                         createdAt = now,
                         createdBy = userId,
                     )

@@ -10,13 +10,18 @@ import com.scalo.stocklify.core.data.database.dao.StockMovementDao
 import com.scalo.stocklify.core.data.database.dao.StoreDao
 import com.scalo.stocklify.core.data.database.dao.StoreProductMappingDao
 import com.scalo.stocklify.core.data.database.mapper.toDomain
+import com.scalo.stocklify.core.data.database.mapper.toDto
 import com.scalo.stocklify.core.data.database.mapper.toEntity
+import com.scalo.stocklify.core.data.sync.SyncOutboxWriter
 import com.scalo.stocklify.core.model.enums.StockMovementReason
 import com.scalo.stocklify.core.model.models.Category
 import com.scalo.stocklify.core.model.models.Product
 import com.scalo.stocklify.core.model.models.StockMovement
 import com.scalo.stocklify.core.model.models.StoreProductMapping
+import com.scalo.stocklify.core.util.constants.Tables
+import com.scalo.stocklify.feature.auth.domain.repository.AuthRepository
 import com.scalo.stocklify.feature.products.domain.usecase.RecognizeProductFromImageUseCase
+import com.scalo.stocklify.feature.products.domain.usecase.UploadProductImageUseCase
 import com.scalo.stocklify.feature.products.model.ScannedProductResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,6 +29,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 sealed class ScanningState {
@@ -48,6 +54,9 @@ class ScanProductViewModel @Inject constructor(
     private val storeDao: StoreDao,
     private val storeProductMappingDao: StoreProductMappingDao,
     private val stockMovementDao: StockMovementDao,
+    private val syncOutboxWriter: SyncOutboxWriter,
+    private val authRepository: AuthRepository,
+    private val uploadProductImage: UploadProductImageUseCase,
 ) : ViewModel() {
 
     private val _imageUri = MutableStateFlow<Uri?>(null)
@@ -143,6 +152,7 @@ class ScanProductViewModel @Inject constructor(
             try {
                 val store = storeDao.getAll().first().firstOrNull()
                     ?: throw IllegalStateException("No store found")
+                val userId = authRepository.getCurrentUser()?.id
 
                 val valid = selectedIndices
                     .mapNotNull { results.getOrNull(it) }
@@ -151,13 +161,23 @@ class ScanProductViewModel @Inject constructor(
                 valid.forEach { result ->
                     val now = System.currentTimeMillis()
 
+                    val productId = UUID.randomUUID().toString()
+                    val imageKey = result.imageUri?.let { localUri ->
+                        store.organizationId?.let { organizationId ->
+                            uploadProductImage(localUri, organizationId, store.id, productId)
+                        }
+                    }
+
                     val product = Product(
+                        id = productId,
                         organizationId = store.organizationId,
                         name = result.productName!!,
-                        imageUrl = result.imageUri?.toString(),
+                        imageUrl = imageKey,
                         createdAt = now,
+                        createdBy = userId,
                     )
                     productDao.insert(product.toEntity())
+                    syncOutboxWriter.enqueueInsert(Tables.PRODUCTS, product.toDto())
 
                     val mapping = StoreProductMapping(
                         storeId = store.id,
@@ -167,17 +187,20 @@ class ScanProductViewModel @Inject constructor(
                         costPrice = result.price,
                         quantity = 0,
                         createdAt = now,
+                        createdBy = userId,
                     )
                     storeProductMappingDao.insert(mapping.toEntity())
+                    syncOutboxWriter.enqueueInsert(Tables.STORE_PRODUCT_MAPPING, mapping.toDto())
 
-                    stockMovementDao.insert(
-                        StockMovement(
-                            storeProductId = mapping.id,
-                            quantity = result.stock ?: 0,
-                            reason = StockMovementReason.INITIAL_STOCK,
-                            createdAt = now,
-                        ).toEntity()
+                    val stockMovement = StockMovement(
+                        storeProductId = mapping.id,
+                        quantity = result.stock ?: 0,
+                        reason = StockMovementReason.INITIAL_STOCK,
+                        createdAt = now,
+                        createdBy = userId,
                     )
+                    stockMovementDao.insert(stockMovement.toEntity())
+                    syncOutboxWriter.enqueueInsert(Tables.STOCK_MOVEMENTS, stockMovement.toDto())
                 }
 
                 _importState.value = ImportState.Success(valid.size)
