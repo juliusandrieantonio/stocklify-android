@@ -113,6 +113,9 @@ dependencies {
     // Splash Screen
     implementation(libs.androidx.core.splashscreen)
 
+    // Exif (image orientation correction before upload)
+    implementation(libs.androidx.exifinterface)
+
     // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

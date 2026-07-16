@@ -18,6 +18,7 @@ interface CategoryDao : BaseDao<CategoryEntity> {
     @Query("""
         SELECT *
         FROM categories
+        WHERE status = 'ACTIVE'
         ORDER BY name
     """)
     fun getAll(): Flow<List<CategoryEntity>>

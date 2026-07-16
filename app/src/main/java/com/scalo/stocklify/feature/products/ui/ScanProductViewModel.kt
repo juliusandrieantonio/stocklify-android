@@ -10,12 +10,16 @@ import com.scalo.stocklify.core.data.database.dao.StockMovementDao
 import com.scalo.stocklify.core.data.database.dao.StoreDao
 import com.scalo.stocklify.core.data.database.dao.StoreProductMappingDao
 import com.scalo.stocklify.core.data.database.mapper.toDomain
+import com.scalo.stocklify.core.data.database.mapper.toDto
 import com.scalo.stocklify.core.data.database.mapper.toEntity
+import com.scalo.stocklify.core.data.sync.SyncOutboxWriter
 import com.scalo.stocklify.core.model.enums.StockMovementReason
 import com.scalo.stocklify.core.model.models.Category
 import com.scalo.stocklify.core.model.models.Product
 import com.scalo.stocklify.core.model.models.StockMovement
 import com.scalo.stocklify.core.model.models.StoreProductMapping
+import com.scalo.stocklify.core.util.constants.Tables
+import com.scalo.stocklify.feature.auth.domain.repository.AuthRepository
 import com.scalo.stocklify.feature.products.domain.usecase.RecognizeProductFromImageUseCase
 import com.scalo.stocklify.feature.products.model.ScannedProductResult
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -48,6 +52,8 @@ class ScanProductViewModel @Inject constructor(
     private val storeDao: StoreDao,
     private val storeProductMappingDao: StoreProductMappingDao,
     private val stockMovementDao: StockMovementDao,
+    private val syncOutboxWriter: SyncOutboxWriter,
+    private val authRepository: AuthRepository,
 ) : ViewModel() {
 
     private val _imageUri = MutableStateFlow<Uri?>(null)
@@ -143,6 +149,7 @@ class ScanProductViewModel @Inject constructor(
             try {
                 val store = storeDao.getAll().first().firstOrNull()
                     ?: throw IllegalStateException("No store found")
+                val userId = authRepository.getCurrentUser()?.id
 
                 val valid = selectedIndices
                     .mapNotNull { results.getOrNull(it) }
@@ -154,10 +161,14 @@ class ScanProductViewModel @Inject constructor(
                     val product = Product(
                         organizationId = store.organizationId,
                         name = result.productName!!,
+                        // Local file:// URI for now — the push/sync step uploads it to
+                        // Supabase Storage and rewrites this to a storage key.
                         imageUrl = result.imageUri?.toString(),
                         createdAt = now,
+                        createdBy = userId,
                     )
                     productDao.insert(product.toEntity())
+                    syncOutboxWriter.enqueueInsert(Tables.PRODUCTS, product.toDto())
 
                     val mapping = StoreProductMapping(
                         storeId = store.id,
@@ -167,17 +178,20 @@ class ScanProductViewModel @Inject constructor(
                         costPrice = result.price,
                         quantity = 0,
                         createdAt = now,
+                        createdBy = userId,
                     )
                     storeProductMappingDao.insert(mapping.toEntity())
+                    syncOutboxWriter.enqueueInsert(Tables.STORE_PRODUCT_MAPPING, mapping.toDto())
 
-                    stockMovementDao.insert(
-                        StockMovement(
-                            storeProductId = mapping.id,
-                            quantity = result.stock ?: 0,
-                            reason = StockMovementReason.INITIAL_STOCK,
-                            createdAt = now,
-                        ).toEntity()
+                    val stockMovement = StockMovement(
+                        storeProductId = mapping.id,
+                        quantity = result.stock ?: 0,
+                        reason = StockMovementReason.INITIAL_STOCK,
+                        createdAt = now,
+                        createdBy = userId,
                     )
+                    stockMovementDao.insert(stockMovement.toEntity())
+                    syncOutboxWriter.enqueueInsert(Tables.STOCK_MOVEMENTS, stockMovement.toDto())
                 }
 
                 _importState.value = ImportState.Success(valid.size)

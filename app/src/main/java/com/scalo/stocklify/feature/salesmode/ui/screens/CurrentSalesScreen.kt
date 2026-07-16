@@ -1,6 +1,5 @@
 package com.scalo.stocklify.feature.salesmode.ui.screens
 
-import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -27,24 +26,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import com.scalo.stocklify.R
 import com.scalo.stocklify.core.ui.components.buttons.StocklifyOutlineButton
 import com.scalo.stocklify.core.ui.components.buttons.StocklifyPrimaryButton
@@ -59,6 +51,8 @@ import com.scalo.stocklify.core.ui.theme.StocklifyTheme
 import com.scalo.stocklify.feature.salesmode.ui.CartItem
 import com.scalo.stocklify.feature.salesmode.ui.SalesModeAction
 import com.scalo.stocklify.feature.salesmode.ui.SalesModeViewModel
+import com.scalo.stocklify.feature.salesmode.ui.rememberProductImageBitmap
+import java.io.File
 
 @Composable
 fun CurrentSalesScreen(
@@ -123,6 +117,7 @@ fun CurrentSalesScreen(
                         cartItem = cartItem,
                         onRemove = { viewModel.onAction(SalesModeAction.RemoveFromCart(cartItem.product.id)) },
                         onQuantityChange = { qty -> viewModel.onAction(SalesModeAction.AddToCart(cartItem.product, qty)) },
+                        resolveImageFile = viewModel::resolveProductImageFile,
                     )
                 }
             }
@@ -168,22 +163,12 @@ private fun CartItemRow(
     cartItem: CartItem,
     onRemove: () -> Unit,
     onQuantityChange: (Int) -> Unit,
+    resolveImageFile: suspend (String, String?) -> File?,
 ) {
-    val context = LocalContext.current
     val product = cartItem.product
     var quantity by remember(cartItem.quantity) { mutableIntStateOf(cartItem.quantity) }
 
-    val imageBitmap by produceState<ImageBitmap?>(initialValue = null, key1 = product.imageUrl) {
-        value = withContext(Dispatchers.IO) {
-            product.imageUrl?.let { url ->
-                runCatching {
-                    context.contentResolver
-                        .openInputStream(url.toUri())
-                        ?.use { BitmapFactory.decodeStream(it)?.asImageBitmap() }
-                }.getOrNull()
-            }
-        }
-    }
+    val imageBitmap by rememberProductImageBitmap(product.id, product.imageUrl, resolveImageFile)
 
     Row(
         modifier = Modifier

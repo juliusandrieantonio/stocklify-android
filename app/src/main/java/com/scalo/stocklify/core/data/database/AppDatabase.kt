@@ -49,7 +49,7 @@ import com.scalo.stocklify.core.data.database.entity.UserStoreMappingEntity
         SyncCursorEntity::class,
         SyncOutboxEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(RecordStatusConverter::class, SyncStatusConverter::class)

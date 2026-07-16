@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.scalo.stocklify.core.config.DatabaseConfig
 import com.scalo.stocklify.core.data.database.AppDatabase
 import com.scalo.stocklify.core.data.database.callback.DatabaseCallback
+import com.scalo.stocklify.core.data.database.migration.APP_MIGRATIONS
 import com.scalo.stocklify.core.data.database.dao.CategoryDao
 import com.scalo.stocklify.core.data.database.dao.DevToolsDao
 import com.scalo.stocklify.core.data.database.dao.OrganizationDao
@@ -53,6 +54,9 @@ object DatabaseModule {
             DatabaseConfig.databaseName()
         )
             .openHelperFactory(factory)
+            .addMigrations(*APP_MIGRATIONS)
+            // Safety net for any version jump without an explicit migration above
+            // (e.g. a skipped release) — real upgrades should go through APP_MIGRATIONS.
             .fallbackToDestructiveMigration(true)
             .addCallback(DatabaseCallback())
             .build()

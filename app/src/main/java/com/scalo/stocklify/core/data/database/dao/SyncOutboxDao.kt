@@ -17,6 +17,9 @@ interface SyncOutboxDao : BaseDao<SyncOutboxEntity> {
     @Query("DELETE FROM sync_outbox WHERE id = :id")
     suspend fun delete(id: String)
 
+    @Query("UPDATE sync_outbox SET payload_json = :payloadJson WHERE id = :id")
+    suspend fun updatePayload(id: String, payloadJson: String)
+
     @Query("UPDATE sync_outbox SET retry_count = retry_count + 1 WHERE id = :id")
     suspend fun incrementRetry(id: String)
 

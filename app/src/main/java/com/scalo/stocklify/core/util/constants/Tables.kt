@@ -16,3 +16,7 @@ object Tables {
     const val SYNC_OUTBOX = "sync_outbox"
 
 }
+
+object Buckets {
+    const val PRODUCT_IMAGES = "product-images"
+}

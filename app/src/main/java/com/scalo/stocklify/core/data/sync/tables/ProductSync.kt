@@ -23,6 +23,22 @@ class ProductSync @Inject constructor(
         scope = SyncScope.ORGANIZATION,
         fetchPage = { orgId, since, limit -> remote.products(orgId!!, since, limit) },
         versionOf = { it.version },
-        applyPage = { items -> productDao.upsertAll(items.map { it.toEntity() }) }
+        applyPage = { items ->
+            // upsertAll REPLACEs the whole row, so a locally cached image would
+            // otherwise be wiped on every pull. Carry it forward as long as the
+            // incoming image_url still matches what it was cached for; a changed
+            // remote key means a new image was uploaded, so let the cache drop
+            // and get re-downloaded lazily on next view.
+            val merged = items.map { dto ->
+                val entity = dto.toEntity()
+                val existing = productDao.getById(entity.id)
+                if (existing != null && existing.cachedImageKey != null && existing.cachedImageKey == entity.imageUrl) {
+                    entity.copy(localImagePath = existing.localImagePath, cachedImageKey = existing.cachedImageKey)
+                } else {
+                    entity
+                }
+            }
+            productDao.upsertAll(merged)
+        }
     )
 }
